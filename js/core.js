@@ -1,7 +1,11 @@
 // الحالة العامة وقواعد اللعب والحساب (منطق بلا واجهة)
 const $=id=>document.getElementById(id),RED=c=>c.s%2==1;
 let G,S=[0,0],D=Math.random()*4|0,RN=0,RT=0,mt;
+<<<<<<< HEAD
 const SPEEDS=[1.1,.7,.4];let SPD=1,STREAK=0;
+=======
+const SPEEDS=[1.6,1,.55];let SPD=1,STREAK=0;
+>>>>>>> cce7580195d6348c938aac1f92e1fa0f2affe16f
 const T=(f,ms,raw)=>{const t=RT;setTimeout(()=>{if(t==RT)f()},raw?ms:ms*SPEEDS[SPD])};
 const hk=()=>G.mode=='h',isT=c=>hk()&&c.s==G.tr;
 const val=(c,L)=>isT(c)?10+ST[c.r]:c.s==L?SN[c.r]:-1;
@@ -40,6 +44,7 @@ function rp(a,o){if(hk())return a%10==5?Math.floor(a/10):Math.round(a/10);return
 function pjP(i){return G.pv[i].reduce((a,v)=>a+(hk()?v/10:v==400?40:v/5),0)}
 const HIST=[];
 let RESULT=false;
+<<<<<<< HEAD
 
 // ===== القيد: كشف المخالفات وإثباتها =====
 // المخالفة تُسجَّل لحظة اللعب مع «دليلها» (chk): ورقة لاحقة من يد المخالف تثبت أنه كان يملك ما تجاهله. لا يصح الطلب قبل ظهور الدليل.
@@ -56,3 +61,5 @@ function vio0(h,i,c){
  if(c.s!=G.tr)return {type:'nodq',why:'لم يدق بالحكم ثم ظهر معه حكم',chk:x=>x.s==G.tr};
  const mx=Math.max(-1,...G.t.filter(t=>t.c.s==G.tr).map(t=>ST[t.c.r]));
  return {type:'nobig',why:'دق بحكم أصغر مع وجود أعلى',chk:x=>x.s==G.tr&&ST[x.r]>mx}}
+=======
+>>>>>>> cce7580195d6348c938aac1f92e1fa0f2affe16f

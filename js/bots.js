@@ -6,6 +6,7 @@ function botBid(i){
  if(G.rd==1&&(i==G.dealer||i==(G.dealer+3)%4)&&sn>=5&&sn<7&&bv<6)bid(i,'a');
  else if(sn>=7)bid(i,'s');else if(bv>=(G.rd==1?6:5))bid(i,'h',bs);else bid(i,'p');
 }
+<<<<<<< HEAD
 // ===== لعب البوت: يرى كل الأوراق ويبحث عن أفضل لعبة (أكبر فرق أبناط لفريقه) =====
 // بحث ألفا-بيتا على الأكلات المتبقية، مع جدول للحالات المكررة، واختصار الأوراق المتكافئة، وعمق متدرج بمهلة زمنية.
 // لأنه يرى الأوراق كلها فلا حاجة للتهريب: يكبّر لشريكه ويصغّر للخصم ويمسك اللعب حين يفيد.
@@ -93,3 +94,16 @@ function botPlay(i){
  try{const id=solvePlay(i);c=h.find(x=>x.s*8+x.r==id)}catch(e){c=null}
  if(!c){const L=legal(h,i);c=L[0]}
  play(i,c,hk()&&!G.t.length&&!isT(c)&&c.r!=7&&isMaster(c))}
+=======
+function botPlay(i){
+ if(G.ph!='p')return;
+ const h=G.h[i],L=legal(h,i),key=c=>pts(c)*100+str(c),lo=a=>[...a].sort((x,y)=>key(x)-key(y))[0];let c;
+ if(!G.t.length){
+  c=L.find(x=>x.r==7&&!isT(x))||(hk()&&L.find(x=>!isT(x)&&isMaster(x)))||(hk()&&i%2==G.buyer%2&&L.find(x=>isT(x)&&x.r==4))||lo(L);
+ }else{
+  const w=win(),ls=G.t[0].c.s,wn=L.filter(x=>val(x,ls)>val(w.c,ls));
+  if(w.i%2==i%2)c=G.t.length==3?[...L].sort((x,y)=>pts(y)-pts(x))[0]:lo(L);
+  else c=wn.length?[...wn].sort((x,y)=>val(x,ls)-val(y,ls))[0]:lo(L);
+ }
+  play(i,c,hk()&&!G.t.length&&!isT(c)&&c.r!=7&&isMaster(c))}
+>>>>>>> cce7580195d6348c938aac1f92e1fa0f2affe16f

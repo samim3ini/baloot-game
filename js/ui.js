@@ -5,10 +5,17 @@ function say(i,m){
  if(i>=0&&BIDW.test(m))return;
  const e=$('msg');e.textContent=(i>=0?NM[i]+': ':'')+m;e.classList.add('show');clearTimeout(mt);mt=setTimeout(()=>e.classList.remove('show'),1800)}
 const SKIN={},ck=c=>RK[c.r]+SUL[c.s];let UP={};
+<<<<<<< HEAD
 function card(c,k='',st=''){const r=c.r,s=SU[c.s],u=SKIN[ck(c)];
  if(u)return `<div class="cd sk ${k}" style="background-image:url('${u}');${st}"></div>`;
  const cr=`<i>${RK[r]}</i><b>${s}</b>`;
  return `<div class="cd ${RED(c)?'rd':''} ${k}" style="${st}"><span class="cr">${cr}</span><span class="cr b">${cr}</span><span class="cm"><i>${RK[r]}</i><b>${s}</b></span></div>`}
+=======
+function card(c,k=''){const r=c.r,s=SU[c.s],u=SKIN[ck(c)];
+ if(u)return `<div class="cd sk ${k}" style="background-image:url('${u}')"></div>`;
+ const cr=`<i>${RK[r]}</i><b>${s}</b>`;
+ return `<div class="cd ${RED(c)?'rd':''} ${k}"><span class="cr">${cr}</span><span class="cr b">${cr}</span><span class="cm"><i>${RK[r]}</i><b>${s}</b></span></div>`}
+>>>>>>> cce7580195d6348c938aac1f92e1fa0f2affe16f
 const RUGSVG=`<svg viewBox="0 0 400 240" preserveAspectRatio="none"><defs><pattern id="dt" width="16" height="16" patternUnits="userSpaceOnUse"><rect width="16" height="16" fill="#e9cf96"/><circle cx="8" cy="8" r="4.6" fill="#cf3a24"/><circle cx="8" cy="8" r="1.8" fill="#f3dca4"/></pattern><pattern id="zg" width="36" height="22" patternUnits="userSpaceOnUse"><rect width="36" height="22" fill="#b3302b"/><path d="M0 22L18 3L36 22Z" fill="#d89a2b"/><path d="M0 0L18 19L36 0Z" fill="#2f7a5a"/></pattern><pattern id="sp" width="8" height="40" patternUnits="userSpaceOnUse"><rect width="8" height="40" fill="#b3302b"/><rect y="6" width="8" height="2" fill="#e0574c"/><rect y="20" width="8" height="3" fill="#4b3a86"/><circle cx="4" cy="33" r="1.4" fill="#2f7a5a"/></pattern></defs><rect width="400" height="240" fill="url(#dt)"/><rect x="14" y="14" width="372" height="212" fill="#7d221f"/><rect x="18" y="18" width="364" height="204" fill="url(#sp)"/><rect x="18" y="50" width="364" height="22" fill="url(#zg)"/><rect x="18" y="168" width="364" height="22" fill="url(#zg)"/><rect x="18" y="108" width="364" height="22" fill="url(#zg)" opacity=".85"/></svg>`;
 function applySkin(){
  document.documentElement.style.setProperty('--back',SKIN.back?`url('${SKIN.back}')`:'none');
@@ -32,9 +39,13 @@ function share(){if(navigator.share)navigator.share({title:'بلوت',url:locati
 function splash(t,lv,sb){const e=document.createElement('div');e.className='splash lv'+lv;e.innerHTML=t+(sb?`<small>${sb}</small>`:'');$('stage').appendChild(e);if(lv>=3){$('stage').classList.add('shake');setTimeout(()=>$('stage').classList.remove('shake'),600)}setTimeout(()=>{if(e.remove)e.remove()},1700)}
 function confetti(n=44){const b=document.body;if(!b)return;const c=['#d9ae4a','#7db4ff','#ff9f86','#6fc263','#fff'];for(let i=0;i<n;i++){const e=document.createElement('div');e.className='cf';e.style.left=(Math.random()*100)+'vw';e.style.background=c[i%5];e.style.animationDelay=(Math.random()*.6)+'s';e.style.setProperty('--dx',((Math.random()-.5)*200)+'px');b.appendChild(e);setTimeout(()=>{if(e.remove)e.remove()},3600)}}
 function setScore(id,v){const e=$(id);if(e.textContent==String(v))return;e.textContent=v;e.classList.remove('bump');void e.offsetWidth;e.classList.add('bump')}
+<<<<<<< HEAD
 // أوراق السوا/نهاية الجولة: متناثرة قليلًا ومتقاربة (إزاحة ودوران ثابتان لكل ورقة حتى لا تتحرك عند إعادة الرسم)
 const jit=(c,n)=>{const x=Math.sin((c.s*8+c.r+1)*(n+3.7))*10000;return x-Math.floor(x)};
 function revealHtml(){return G.rev.map((h,i)=>h.length?`<div class="rv rv${i}">${h.map(c=>card(c,'',`--rr:${((jit(c,1)-.5)*26).toFixed(1)}deg;--rx:${((jit(c,2)-.5)*10).toFixed(1)}px;--ry:${((jit(c,3)-.5)*12).toFixed(1)}px`)).join('')}</div>`:'').join('')}
+=======
+function revealHtml(){return G.rev.map((h,i)=>h.length?`<div class="rv rv${i}">${h.map(c=>card(c)).join('')}</div>`:'').join('')}
+>>>>>>> cce7580195d6348c938aac1f92e1fa0f2affe16f
 function showProj(i){
  const rem=G.pcd[i].flat().filter(c=>!G.pl[i].includes(c));if(!rem.length)return;
  const e=document.createElement('div');e.className='pjr p'+i;
@@ -42,8 +53,11 @@ function showProj(i){
  $('stage').appendChild(e);setTimeout(()=>{if(e.remove)e.remove()},4500)}
 
 function pop(i,n){const e=document.createElement('div');e.className='pop p'+i;e.textContent='+'+n;$('stage').appendChild(e);setTimeout(()=>{if(e.remove)e.remove()},1400)}
+<<<<<<< HEAD
 // كومة الأكلات الرابحة لمقعد i: أوراق أفقية متراكمة (حتى 8 طبقات) وعدد الأكلات فوقها
 function pileHtml(i){const n=G.pile[i];if(!n)return'';const L=Math.min(n,8);return `<div class="pile" style="--n:${L}">${Array.from({length:L},(_,k)=>`<u style="--k:${k}"></u>`).join('')}<b>${n}</b></div>`}
+=======
+>>>>>>> cce7580195d6348c938aac1f92e1fa0f2affe16f
 const DLR='<div class="dlr" title="الموزع"><i></i><span>موزع</span></div>';
 function render(){
  setScore('s0',S[0]);setScore('s1',S[1]);$('streak').textContent=STREAK>=2?'🔥 '+STREAK+' جولات متتالية':'';
@@ -53,6 +67,7 @@ function render(){
  $('info').innerHTML=(G.mode?(G.mode=='s'?'<span class="bg">صن</span>':`<span class="bg ${G.tr%2?'rd':''}">${SU[G.tr]}</span> حكم`)+'<br><small>المشتري: '+NM[G.buyer]+(G.ash?' (أشكل)':'')+(G.m>1?' — '+DN[G.m-2]:'')+(G.coffee?' — قهوة':'')+(G.cl?' (مقفل)':'')+'</small>':'<small>المزايدة</small>');
  const act=G.ph!='e'&&G.t.length<4;
  for(let i=1;i<4;i++){const e=$('p'+i),n=G.h[i].length;e.className='seat tm'+(i%2)+(act?(G.turn==i?' on':' dim'):'')+(G.mode&&G.buyer==i?' buyer':'');
+<<<<<<< HEAD
   e.innerHTML=`<div class="bk">${Array.from({length:n},(_,k)=>`<u style="--r:${((k-(n-1)/2)*8).toFixed(1)}deg"></u>`).join('')}</div><div class="av"></div><div class="pl"><b class="nm">${NM[i]}</b></div>${i==G.dealer?DLR:''}${G.mode&&G.buyer==i?`<div class="by">${bdg(i)}</div>`:''}${G.tag[i]?`<div class="bb">${G.tag[i]}</div>`:''}${pileHtml(i)}`}
  const nw=G.t.length>(G.rn||0);$('mid').className='';$('mid').innerHTML=(G.ph=='b'||G.ph=='f'||G.ph=='q'||G.fly!=null?`<div class="fl${G.fly!=null?' fly'+G.fly:''}">${card(G.fl)}</div>`:'')+G.t.map((x,k)=>card(x.c,'pc pc'+x.i+(nw&&k==G.t.length-1?' pin':''))).join('')+(G.rev?revealHtml():'');G.rn=G.t.length;
  const my=G.ph=='p'&&G.turn==0&&G.t.length<4,L=my?legal(G.h[0],0):[],n0=G.h[0].length,cak=my&&hk()&&!G.t.length;if(!cak)G.ak=0;
@@ -66,6 +81,21 @@ function render(){
  $('trp').style.display=G.mode?'':'none';$('trp').innerHTML=G.mode?(G.mode=='s'?'<b class="sn">صن</b>':`<b class="${G.tr%2?'rd':''}">${SU[G.tr]}</b><small>حكم</small>`)+(G.ash?'<small>أشكل</small>':''):'';
  if(G.ph=='p'&&!G.pm){const dcl=G.n==0&&G.po[0].length&&!G.dc&&!G.fd[0];
   $('act').innerHTML=(QAID.on?`<button id="qb" onclick="qaidUI()">قيد</button>`:'')+(dcl?`<button id="pjb" class="on" onclick="projMenu()">المشاريع</button>`:'')+`${hk()?`<button class="${G.ak?'on':''}" ${cak?'':'disabled'} onclick="tkToggle()">إكة</button>`:''}<button id="bs" onclick="sawa()">سوا</button>`;
+=======
+  e.innerHTML=`<div class="bk">${Array.from({length:n},(_,k)=>`<u style="--r:${((k-(n-1)/2)*8).toFixed(1)}deg"></u>`).join('')}</div><div class="av"></div><div class="pl"><b class="nm">${NM[i]}</b></div>${i==G.dealer?DLR:''}${G.mode&&G.buyer==i?`<div class="by">${bdg(i)}</div>`:''}${G.tag[i]?`<div class="bb">${G.tag[i]}</div>`:''}`}
+ const nw=G.t.length>(G.rn||0);$('mid').className='';$('mid').innerHTML=(G.ph=='b'||G.ph=='f'||G.ph=='q'||G.fly!=null?`<div class="fl${G.fly!=null?' fly'+G.fly:''}">${card(G.fl)}</div>`:'')+G.t.map((x,k)=>card(x.c,'pc pc'+x.i+(nw&&k==G.t.length-1?' pin':''))).join('')+(G.rev?revealHtml():'');G.rn=G.t.length;
+ const my=G.ph=='p'&&G.turn==0&&G.t.length<4,L=my?legal(G.h[0],0):[],n0=G.h[0].length,cak=my&&hk()&&!G.t.length;if(!cak)G.ak=0;
+ $('hand').innerHTML='';
+ G.h[0].forEach((c,k)=>{const d=document.createElement('div');d.innerHTML=card(c,(my?(L.includes(c)?'ok':'no'):'')+(G.fresh?' dlv':''));const e=d.firstChild;if(G.fresh)e.style.animationDelay=(k*60)+'ms';
+  e.style.setProperty('--r',((k-(n0-1)/2)*4)+'deg');e.style.setProperty('--y0',(Math.abs(k-(n0-1)/2)*3)+'px');
+  if(my&&L.includes(c))e.onclick=()=>hp(c);$('hand').appendChild(e)});G.fresh=0;
+ document.querySelector('.me').className='me tm0'+(act?(G.turn==0?' on':' dim'):'')+(G.mode&&G.buyer==0?' buyer':'');
+ $('dl0').style.display=G.dealer==0?'':'none';$('piles').innerHTML=[0,1,2,3].map(i=>G.pile[i]?`<div class="pile pl${i}" style="--n:${Math.min(G.pile[i],5)}"><b>${G.pile[i]}</b></div>`:'').join('');$('stage').classList.toggle('myturn',!!my);const bd=G.ph=='b'||G.ph=='f'||G.ph=='q';$('rdn').style.display=bd?'':'none';$('rdn').innerHTML=bd?`<span class="${G.rd==1?'on':''}">الدور الأول</span><span class="${G.rd==2?'on':''}">الدور الثاني</span>`:'';
+ $('dblb').innerHTML=G.m>1||G.coffee?`<div class="r lv${G.coffee?5:G.m}"><b>${G.coffee?'☕':'×'+G.m}</b><span>${G.coffee?'قهوة':DN[G.m-2]+(hk()&&(G.m==2||G.m==4)?(G.cl?' مقفل':' مفتوح'):'')}</span></div>`:'';$('by0').innerHTML=bdg(0);$('by0').style.display=G.mode&&G.buyer==0?'':'none';
+ $('trp').style.display=G.mode?'':'none';$('trp').innerHTML=G.mode?(G.mode=='s'?'<b class="sn">صن</b>':`<b class="${G.tr%2?'rd':''}">${SU[G.tr]}</b><small>حكم</small>`)+(G.ash?'<small>أشكل</small>':''):'';
+ if(G.ph=='p'&&!G.pm){const dcl=G.n==0&&G.po[0].length&&!G.dc&&!G.fd[0];
+  $('act').innerHTML=(dcl?`<button class="on" onclick="projMenu()">المشاريع</button>`:'')+`${hk()?`<button class="${G.ak?'on':''}" ${cak?'':'disabled'} onclick="tkToggle()">إكة</button>`:''}<button id="bs" onclick="sawa()">سوا</button>`;
+>>>>>>> cce7580195d6348c938aac1f92e1fa0f2affe16f
   $('bs').disabled=!(!G.turn&&!G.t.length&&G.n>=1)}
 }
 
@@ -88,6 +118,7 @@ function showTracker(){
  ovOpen(`<h2>الأوراق الخارجة</h2><div class="trk">${rows}</div><p class="lg2"><span class="x">خرجت</span> <span class="m">في يدك</span> <span>لم تخرج</span></p><button onclick="ovClose()">إغلاق</button>`)}
 const SPNAME=['بطيء','عادي','سريع'],SPICO=['🐢','🐇','⚡'];
 function cycSpeed(){SPD=(SPD+1)%3;$('spi').textContent=SPICO[SPD];$('spt').textContent=SPNAME[SPD]}
+<<<<<<< HEAD
 
 // ===== القيد: الواجهة =====
 let QS={p:-1,t:'',pc:-1,rq:-1};
@@ -116,3 +147,5 @@ function qaidLog(){
  const wn=t=>t.reduce((a,b)=>val(b.c,t[0].c.s)>val(a.c,t[0].c.s)?b:a).i;
  const rows=[...G.tl,...(G.t.length?[G.t]:[])].map((t,k)=>{const w=t.length==4&&k<G.tl.length?wn(t):-1;return `<div class="tlr"><b>${k+1}</b>${t.map(x=>`<div class="lc${x.i==w?' w':''}">${card(x.c)}<small>${NM[x.i]}</small></div>`).join('')}</div>`}).join('')||'<p>لا أكلات بعد</p>';
  ovOpen(`<h2>سجل الأكلات</h2><p style="font-size:13px">بترتيب اللعب، وأول ورقة في كل صف هي الافتتاح.</p><div class="tlog">${rows}</div><button onclick="ovClose()">رجوع</button>`)}
+=======
+>>>>>>> cce7580195d6348c938aac1f92e1fa0f2affe16f
