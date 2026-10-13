@@ -3,11 +3,7 @@ function deal(){
  RT++;RN++;RESULT=false;
  const dk=[];for(let s=0;s<4;s++)for(let r=0;r<8;r++)dk.push({s,r});
  for(let i=dk.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[dk[i],dk[j]]=[dk[j],dk[i]]}
-<<<<<<< HEAD
  G={h:[0,1,2,3].map(()=>dk.splice(0,5)),fl:dk.pop(),dk,t:[],pt:[0,0],tk:[0,0],tr:-1,mode:'',n:0,pj:[0,0,0,0],pl:[[],[],[],[]],bl:[0,0],pw:-1,buyer:-1,rd:1,turn:(D+1)%4,cnt:0,ph:'b',fd:{},dc:0,tag:['','','',''],ash:0,pk:[0,0,0,0],dealer:D,fresh:1,ak:0,pile:[0,0,0,0],nf:0,m:1,dt:-1,coffee:0,cl:0,dst:0,q:[],po:[[],[],[],[]],pv:[[],[],[],[]],pcd:[[],[],[],[]],ps:[0,0,0,0],nq:0,bq:[],sb:-1,rv:{},pm:0,vio:[],tl:[]};
-=======
- G={h:[0,1,2,3].map(()=>dk.splice(0,5)),fl:dk.pop(),dk,t:[],pt:[0,0],tk:[0,0],tr:-1,mode:'',n:0,pj:[0,0,0,0],pl:[[],[],[],[]],bl:[0,0],pw:-1,buyer:-1,rd:1,turn:(D+1)%4,cnt:0,ph:'b',fd:{},dc:0,tag:['','','',''],ash:0,pk:[0,0,0,0],dealer:D,fresh:1,ak:0,pile:[0,0,0,0],nf:0,m:1,dt:-1,coffee:0,cl:0,dst:0,q:[],po:[[],[],[],[]],pv:[[],[],[],[]],pcd:[[],[],[],[]],ps:[0,0,0,0],nq:0,bq:[],sb:-1,rv:{},pm:0};
->>>>>>> cce7580195d6348c938aac1f92e1fa0f2affe16f
  G.h.forEach(sortH);log(-1,'الموزع: '+NM[D]);$('ov').style.display='none';$('pmenu').style.display='none';$('wait').style.display='none';render();bidStep();
 }
 function bidStep(){render();if(G.turn==0)showBid();else{$('act').innerHTML=[G.rd==1?'بس':'ولا','أشكل','حكم','صن'].map(t=>`<button disabled>${t}</button>`).join('');T(()=>botBid(G.turn),1500)}}
@@ -51,7 +47,6 @@ function ansD(s,y,cl){
  G.dst++;dblNext()}
 
 function tkToggle(){G.ak=!G.ak;render()}
-<<<<<<< HEAD
 function hp(c){if(G.ak&&(isT(c)||c.r==7)){say(-1,isT(c)?'لا تصح الإكة على ورقة الحكم':'لا حاجة للإكة على الآس');return}if(G.pm)commitP();const a=G.ak;G.ak=0;play(0,c,a)}
 function next(){
  if(G.ph!='p'||G.t.length==4)return;render();
@@ -72,30 +67,10 @@ function commitP(){
  const key=a=>a.slice().sort((x,y)=>x-y).join();
  G.pm=0;$('pmenu').style.display='none';
  if(!want.length||G.ph!='p'||G.n!=0)return render();
-=======
-function hp(c){if(G.ak&&(isT(c)||c.r==7)){say(-1,isT(c)?'لا تصح الإكة على ورقة الحكم':'لا حاجة للإكة على الآس');return}const a=G.ak;G.ak=0;play(0,c,a)}
-function next(){
- if(G.ph!='p'||G.t.length==4)return;render();
- if(G.turn!=0)T(()=>botPlay(G.turn),1300)}
-function pnames(i){return G.pv[i].map(v=>PJ[v]).join(' + ')}
-const PV=[20,50,100,400];
-function projMenu(){G.pm=1;G.sel=[0,0,0,0];showPM()}
-function showPM(){
- const tx=G.sel.map((n,j)=>n?PJ[PV[j]]+(n>1?' ×'+n:''):'').filter(Boolean).join(' + ')||'اختر مشاريعك';
- $('pmenu').innerHTML=`<div class="pt">${tx}</div><div class="pr">${PV.map((v,j)=>`<button ${v==400&&hk()?'disabled':''} onclick="selP(${j})">${PJ[v]}${G.sel[j]?' <b>×'+G.sel[j]+'</b>':''}</button>`).join('')}</div><div class="pr"><button class="on" onclick="okP()">تأكيد</button><button onclick="G.sel=[0,0,0,0];showPM()">مسح</button><button class="bp" onclick="closePM()">إلغاء</button></div>`;
- $('pmenu').style.display='block'}
-function selP(j){G.sel[j]=Math.min(G.sel[j]+1,j==0?2:1);showPM()}
-function closePM(){G.pm=0;$('pmenu').style.display='none';render()}
-function okP(){
- const want=[];G.sel.forEach((n,j)=>{for(let k=0;k<n;k++)want.push(PV[j])});
- const key=a=>a.slice().sort((x,y)=>x-y).join();
- closePM();if(!want.length)return;
->>>>>>> cce7580195d6348c938aac1f92e1fa0f2affe16f
  const o=G.po[0].filter(x=>key(x.items.map(y=>y.v))==key(want)).sort((a,b)=>b.k-a.k)[0];
  G.dc=1;setProj(0,o||null);say(0,want.map(v=>PJ[v]).join(' + '));
  if(!o)say(-1,'المشروع غير صحيح ولا يُحتسب');
  render()}
-<<<<<<< HEAD
 document.addEventListener('click',e=>{if(!G||!G.pm)return;const path=e.composedPath?e.composedPath():[];if(!path.some(n=>n.id=='pmenu'||n.id=='pjb'))commitP()});
 
 function play(i,c,ak){
@@ -106,24 +81,12 @@ function play(i,c,ak){
  G.h[i].splice(G.h[i].indexOf(c),1);
  if(vio){vio.i=i;vio.c=c;G.vio.push(vio)}
  if(bad)G.vio.push({type:'ace',i,c,leg:[]});
-=======
-
-function play(i,c,ak){
- if(G.ph!='p'||G.t.length>3)return;
- if(!G.t.length&&G.n==0)G.ld=i;
- const ann=ak&&!G.t.length&&hk()&&!isT(c)&&c.r!=7,bad=ann&&!isMaster(c);
- G.h[i].splice(G.h[i].indexOf(c),1);
->>>>>>> cce7580195d6348c938aac1f92e1fa0f2affe16f
  if(G.n==0&&!G.fd[i]){G.fd[i]=1;if(i==0){G.pm=0;$('pmenu').style.display='none'}if(i==0&&!G.dc)setProj(0,null);if(i&&G.pj[i])say(i,pnames(i))}
  if(hk()&&c.s==G.tr&&(c.r==5||c.r==6)&&!(G.pj[i]==100&&G.pk[i]%100<10&&(G.pk[i]%10==5||G.pk[i]%10==6))&&G.pl[i].some(x=>x.s==c.s&&(x.r==5||x.r==6)&&x.r!=c.r)){G.bl[i%2]+=20;say(i,'بلوت!');splash('بلوت!',1)}
  G.pl[i].push(c);G.t.push({i,c});
  if(G.n==1&&!G.rv[i]&&G.pv[i].length){G.rv[i]=1;showProj(i)}
  if(ann)say(i,'إكة');
-<<<<<<< HEAD
  if(G.t.length==4){render();T(()=>{const w=win().i,el=document.querySelector('.pc'+w);if(el)el.classList.add('wn');T(()=>{$('mid').className='sw'+((w+2)%4);T(endTrick,PLAY_MS.sweep,1)},PLAY_MS.hold,1)},PLAY_MS.look,1)}else{G.turn=(i+1)%4;next()}
-=======
- if(G.t.length==4){render();T(()=>{const w=win().i,el=document.querySelector('.pc'+w);if(el)el.classList.add('wn');T(()=>{$('mid').className='sw'+((w+2)%4);T(endTrick,650)},1000)},1600)}else{G.turn=(i+1)%4;next()}
->>>>>>> cce7580195d6348c938aac1f92e1fa0f2affe16f
 }
 function endTrick(){
  if(G.ph!='p')return;
@@ -131,22 +94,14 @@ function endTrick(){
  G.last=G.t.slice();G.lw=w.i;const tp=G.t.reduce((a,x)=>a+pts(x.c),0);G.pt[tm]+=tp;G.tk[tm]++;G.n++;G.pile[(w.i+2)%4]++;pop(w.i,tp);
  if(G.n==1){const m=[0,0];for(let i=0;i<4;i++)m[i%2]=Math.max(m[i%2],G.pj[i]?G.pk[i]:0);const mx=Math.max(...m);
   if(mx>0)for(let k=0;k<4;k++){const s=(G.ld+k)%4;if(G.pj[s]&&G.pk[s]==mx){G.pw=s%2;break}}}
-<<<<<<< HEAD
  G.tl.push(G.t.slice());G.t=[];
  if(G.n==8){if(qFinal())return;G.pt[tm]+=10;return endWait(endRound)}
-=======
- G.t=[];
- if(G.n==8){G.pt[tm]+=10;return endWait(endRound)}
->>>>>>> cce7580195d6348c938aac1f92e1fa0f2affe16f
  G.turn=w.i;next()}
 function sawa(){
  if(G.ph!='p'||G.turn||G.t.length||G.n<1)return;
  const ok=sawaOK(),tm=ok?0:1;
-<<<<<<< HEAD
  if(qFinal())return;
  if(!ok){say(0,'سوا');return qaidEnd(1,'قيد سوا خاطئ عليك: أعلنت سوا وبقيت أكلات لا تكسبها')}
-=======
->>>>>>> cce7580195d6348c938aac1f92e1fa0f2affe16f
  G.pt[tm]+=G.h.flat().reduce((a,c)=>a+pts(c),0)+10;G.tk[tm]+=G.h[0].length;G.n=8;
  say(0,'سوا');splash('سوا!',1);say(-1,ok?'سوا صحيحة: أخذتم باقي الأكلات':'سوا خاطئة: ذهبت باقي الأكلات للخصم');
  G.rev=G.h.map(h=>h.slice());G.h=[[],[],[],[]];render();endWait(endRound)}
@@ -209,7 +164,6 @@ function wtick(){
  $('wait').style.display='flex';$('wt').textContent='النتيجة بعد '+G.wn+' — اضغط في أي مكان';G.wn--;T(wtick,1000,1)}
 function skipWait(){const cb=G.wcb;if(!cb)return;G.wcb=null;$('wait').style.display='none';cb()}
 function ovClick(e){if(RESULT&&G.ph=='e'&&!(e.target.closest&&e.target.closest('button')))deal()}
-<<<<<<< HEAD
 
 // ===== القيد: الطلب والحساب =====
 // لا يُشترط ظهور دليل قبل الطلب: يُطبَّق القيد صحيحًا كان أو خاطئًا، وطالبه يذكر الورقة المخالفة والمفروضة ونوع القيد.
@@ -236,5 +190,3 @@ function claimQaid(p,type,pid,rid){
  if(v){v.done=1;return qaidEnd(0,'قيد صحيح — '+tx)}
  if(QAID.falseFlip)qaidEnd(1,'قيد خاطئ — '+tx+' (لم يثبت) فانقلب عليكم');
  else say(-1,'القيد لم يثبت')}
-=======
->>>>>>> cce7580195d6348c938aac1f92e1fa0f2affe16f
