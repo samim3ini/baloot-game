@@ -2,7 +2,9 @@
 const $=id=>document.getElementById(id),RED=c=>c.s%2==1;
 let G,S=[0,0],D=Math.random()*4|0,RN=0,RT=0,mt;
 const SPEEDS=[1.1,.7,.4];let SPD=1,STREAK=0;
-const T=(f,ms,raw)=>{const t=RT;setTimeout(()=>{if(t==RT)f()},raw?ms:ms*SPEEDS[SPD])};
+// QP: اللعب متوقف (نافذة القيد مفتوحة). المؤقتات التي تنتهي أثناء التوقف تُحفظ في QPQ وتُنفَّذ عند الاستئناف (qClose).
+let QP=0;const QPQ=[];
+const T=(f,ms,raw)=>{const t=RT;setTimeout(function run(){if(t!=RT)return;if(QP){QPQ.push(run);return}f()},raw?ms:ms*SPEEDS[SPD])};
 const hk=()=>G.mode=='h',isT=c=>hk()&&c.s==G.tr;
 const val=(c,L)=>isT(c)?10+ST[c.r]:c.s==L?SN[c.r]:-1;
 const pts=c=>isT(c)?PT[c.r]:PN[c.r];

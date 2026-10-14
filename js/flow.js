@@ -101,7 +101,7 @@ function sawa(){
  if(G.ph!='p'||G.turn||G.t.length||G.n<1)return;
  const ok=sawaOK(),tm=ok?0:1;
  if(qFinal())return;
- if(!ok){say(0,'سوا');return qaidEnd(1,'قيد سوا خاطئ عليك: أعلنت سوا وبقيت أكلات لا تكسبها')}
+ if(!ok){say(0,'سوا');return qaidView({type:'sawa',p:0,by:1+2*(Math.random()<.5),pid:-1},()=>qaidEnd(1,'قيد سوا خاطئ عليك: أعلنت سوا وبقيت أكلات لا تكسبها'))}
  G.pt[tm]+=G.h.flat().reduce((a,c)=>a+pts(c),0)+10;G.tk[tm]+=G.h[0].length;G.n=8;
  say(0,'سوا');splash('سوا!',1);say(-1,ok?'سوا صحيحة: أخذتم باقي الأكلات':'سوا خاطئة: ذهبت باقي الأكلات للخصم');
  G.rev=G.h.map(h=>h.slice());G.h=[[],[],[],[]];render();endWait(endRound)}
@@ -171,11 +171,12 @@ function ovClick(e){if(RESULT&&G.ph=='e'&&!(e.target.closest&&e.target.closest('
 const cardTx=id=>RK[id%8]+SU[id>>3];
 function qMsg(type,p,pid,rid){
  const who=p==0?'عليك':'على '+NM[p];
+ if(type=='sawa')return 'قيد سوا خاطئ: لم يُعلن أحد سوا'
  return type=='ace'?`قيد ${VT[type]} ${who}: أعلن إكة بورقة ${cardTx(pid)} وهي ليست الأعلى`:`قيد ${VT[type]} ${who}: لعب ${cardTx(pid)} وكان مفروضًا يلعب ${cardTx(rid)}`}
 function qFinal(){
  const v=G.vio.find(x=>x.i%2==0&&!x.done);if(!v)return false;
- v.done=1;const pid=v.c.s*8+v.c.r,rid=v.leg.find(id=>G.pl[v.i].some(x=>x.s*8+x.r==id));
- say(1,'قيد!');qaidEnd(1,qMsg(v.type,v.i,pid,rid===undefined?v.leg[0]:rid));return true}
+ v.done=1;const pid=v.c.s*8+v.c.r,fd=v.leg.find(id=>G.pl[v.i].some(x=>x.s*8+x.r==id)),rid=fd===undefined?v.leg[0]:fd,msg=qMsg(v.type,v.i,pid,rid);
+ qaidView({type:v.type,p:v.i,by:1+2*(Math.random()<.5),pid,rid},()=>qaidEnd(1,msg));return true}
 // الحساب: أساس الجولة (26 صن / 16 حكم) مضروبًا في الدبل، مع مشاريع الفريق المستفيد وبلوته.
 function qaidEnd(t,msg){
  if(G.ph!='p')return;
@@ -184,9 +185,8 @@ function qaidEnd(t,msg){
  p[t]=(hk()?16:26)*m+(m==2?2:1)*pa[t]+bl[t];
  splash('قيد!',3);fin(p,msg,t)}
 function claimQaid(p,type,pid,rid){
- if(G.ph!='p'){say(-1,'لا يمكن طلب القيد الآن');return}
- $('ov').style.display='none';OVP=null;
+ if(G.ph!='p'){qClose();say(-1,'لا يمكن طلب القيد الآن');return}
  const v=G.vio.find(x=>x.i==p&&x.type==type&&!x.done&&x.c.s*8+x.c.r==pid&&(type=='ace'||x.leg.includes(rid))),tx=qMsg(type,p,pid,rid);
- if(v){v.done=1;return qaidEnd(0,'قيد صحيح — '+tx)}
- if(QAID.falseFlip)qaidEnd(1,'قيد خاطئ — '+tx+' (لم يثبت) فانقلب عليكم');
- else say(-1,'القيد لم يثبت')}
+ if(v){v.done=1;qClose(1);return qaidEnd(0,'قيد صحيح — '+tx)}
+ if(QAID.falseFlip){qClose(1);qaidEnd(1,'قيد خاطئ — '+tx+' (لم يثبت) فانقلب عليكم')}
+ else{qClose();say(-1,'القيد لم يثبت')}}
