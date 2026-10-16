@@ -12,7 +12,7 @@
 <div id="beta">بيتا</div>
 <div id="wrap">
 <aside id="side">
-<div class="tb"><button class="gb" onclick="cycSpeed()"><i id="spi">🐇</i><span id="spt">عادي</span></button><button class="gb" onclick="skinUI()"><i>🎴</i>الورق</button><button class="gb" onclick="share()"><i>⇪</i>مشاركة</button></div>
+<div class="tb"><button class="gb" onclick="cycSpeed()"><i id="spi">🐇</i><span id="spt">عادي</span></button><button class="gb" onclick="skinUI()"><i>🎴</i>الورق</button><button class="gb" onclick="share()"><i>⇪</i>مشاركة</button><button class="gb onlb" onclick="roomToggle()"><i>👥</i><span id="rcnt">الغرفة</span></button><button class="gb onlb" onclick="chatToggle()"><i>💬</i><span id="cbd">دردشة</span></button></div>
 <div class="pan row" id="rn"></div>
 <div class="pan st"><div class="h"><span>لنا</span><span>لهم</span></div><div class="v"><b id="s0">0</b><b id="s1">0</b></div><div id="streak"></div><div class="live" id="live"></div></div>
 <div class="pan" id="info"></div>
@@ -27,12 +27,23 @@
 </div>
 <div id="ov" onclick="ovClick(event)"><div id="ovb"></div></div>
 <div id="qv"><div id="qvb"></div></div>
+<div id="chat"><div class="chd"><b>الدردشة</b><button onclick="chatToggle()">✕</button></div><div id="cl"></div><div class="cin"><input id="ct" maxlength="200" placeholder="اكتب رسالة" onkeydown="if(event.key=='Enter')chatSend()"><button onclick="chatSend()">إرسال</button></div></div>
+<div id="rp"><div id="rpb"></div></div>
+<div id="nbn"></div>
+<div id="lobby"><div class="lbx"><h1>بلوت</h1>
+ <label>اسمك</label><input id="lnm" maxlength="20" placeholder="اسمك في اللعب">
+ <div id="lsrvw"><label>عنوان الخادم <small>(مرة واحدة)</small></label><input id="lsrv" dir="ltr" placeholder="https://baloot-server.اسمك.workers.dev"></div>
+ <button class="go" onclick="lobbySolo()">لعب فردي ضد الحاسوب</button>
+ <button onclick="lobbyCreate()">إنشاء غرفة جديدة</button>
+ <div class="lrow"><input id="lcode" maxlength="5" placeholder="كود الغرفة" onkeydown="if(event.key=='Enter')lobbyJoin()"><button onclick="lobbyJoin()">دخول</button></div>
+ <div id="lmsg"></div></div></div>
 <noscript>يحتاج اللعب إلى تفعيل جافا سكريبت.</noscript>
 <!-- الترتيب مهم: كل ملف يعتمد على ما قبله -->
 <script src="js/engine.js"></script>
 <script src="js/config.js"></script>
 <script src="js/ui.js"></script>
 <script src="js/game.js"></script>
+<script src="js/net.js"></script>
 <script src="js/main.js"></script>
 </body>
 </html>

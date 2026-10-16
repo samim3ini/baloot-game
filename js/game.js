@@ -2,10 +2,12 @@
 // قواعد اللعب نفسها في engine.js. هذا الملف للواجهة فقط (اللعب الفردي: أنت المقعد 0 والباقون بوتات).
 const $=id=>document.getElementById(id),RED=c=>c.s%2==1;
 const SPEEDS=[1.1,.7,.4];let SPD=1,STREAK=0,RESULT=false,FRESH=0,mt;
-const ME=0; // مقعد هذه الصفحة. في اللعب الجماعي يُحدَّد من الخادم.
+let ME=0,SPEC=false,SPECSEAT=0,NETON=false; // ME: مقعدك (اللعب الفردي 0، والجماعي من الخادم). SPEC: مشاهد، يرى من زاوية SPECSEAT.
+const R=i=>(i-ME+4)%4; // موضع المقعد على الشاشة بالنسبة لمقعدك: 0 أسفل، 1 يمين، 2 أمام (شريكك)، 3 يسار
 const UI={ak:0,pm:0,sel:[0,0,0,0],pick:0,rn:0,act:null}; // حالة الواجهة وحدها (لا يعرفها المحرك)
-const ENG=BalootEngine.create({emit:onEvent,after:(f,ms,raw)=>setTimeout(f,raw?ms:ms*SPEEDS[SPD]),playMs:PLAY_MS});
-ENG.setHuman(ME,true);
+const LOCAL=BalootEngine.create({emit:onEvent,after:(f,ms,raw)=>setTimeout(f,raw?ms:ms*SPEEDS[SPD]),playMs:PLAY_MS});
+LOCAL.setHuman(0,true);
+let ENG=LOCAL; // المحرك المحلي (لعب فردي) أو REMOTE (لعب جماعي، في net.js)
 // حالة المحرك تُقرأ منه مباشرة (للقراءة فقط)
 for(const k of ['G','S','D','RN','HIST'])Object.defineProperty(globalThis,k,{get:()=>ENG[k],configurable:true});
 const hk=()=>G.mode=='h',isT=c=>hk()&&c.s==G.tr,val=(c,L)=>ENG.val(c,L),pnames=i=>ENG.pnames(i);
@@ -19,8 +21,8 @@ function onEvent(ev){
   case 'splash':splash(ev.text,ev.lv,ev.sub);break;
   case 'pop':pop(ev.i,ev.n);break;
   case 'proj':showProj(ev.i);break;
-  case 'trickWin':{const el=document.querySelector('.pc'+ev.w);if(el)el.classList.add('wn');break}
-  case 'sweep':$('mid').className='sw'+((ev.w+2)%4);break;
+  case 'trickWin':{const el=document.querySelector('.pc'+R(ev.w));if(el)el.classList.add('wn');break}
+  case 'sweep':$('mid').className='sw'+R((ev.w+2)%4);break;
   case 'sawa':say(-1,'سوا صحيحة: '+(ev.seat%2==ME%2?'أخذتم':'أخذوا')+' باقي الأكلات');break;
   case 'wait':$('wait').style.display='flex';$('wt').textContent='النتيجة بعد '+ev.n+' — اضغط في أي مكان';break;
   case 'waitEnd':$('wait').style.display='none';break;
@@ -29,6 +31,7 @@ function onEvent(ev){
 // ===== الأزرار السفلية: تُبنى من القرار الذي ينتظره المحرك منك =====
 function renderAct(cak){
  const p=ENG.pending(ME),ph=G.ph;
+ if(SPEC){const h='<button onclick="specTurn()">↻ زاوية المشاهدة</button>';if(UI.act!==h){UI.act=h;$('act').innerHTML=h}return}
  if(ph=='p'&&UI.pm)return; // قائمة المشاريع مفتوحة: لا نمسّ الأزرار
  let h='';
  if(G.qa)h='';
@@ -57,6 +60,7 @@ function hp(c){
  const a=UI.ak;UI.ak=0;ENG.play(ME,c.s*8+c.r,!!a)}
 function sawa(){ENG.sawa(ME)}
 function newGame(){STREAK=0;ENG.newGame()}
+function specTurn(){SPECSEAT=(SPECSEAT+1)%4;if(typeof netView=='function')netView();render()}
 function ovClick(e){if(RESULT&&G.ph=='e'&&!(e.target.closest&&e.target.closest('button')))ENG.nextRound()}
 
 // المشاريع يدوية: اختر نوع مشروعك بالنقر عليه (يمكن أكثر من واحد)، ثم المس أي مكان لإعلانه.
@@ -82,6 +86,7 @@ function qMsg(type,p,pid,rid){
  if(type=='sawa')return 'قيد سوا خاطئ: لم يُعلن أحد سوا';
  return type=='ace'?`قيد ${VT[type]} ${who}: أعلن إكة بورقة ${cardTx(pid)} وهي ليست الأعلى`:`قيد ${VT[type]} ${who}: لعب ${cardTx(pid)} وكان مفروضًا يلعب ${cardTx(rid)}`}
 function qaidText(i){
+ if(i.forfeit)return 'انتهت مهلة القيد فانقلب على '+(i.by==ME?'صاحبه (أنت)':NM[i.by]);
  if(i.type=='sawa'&&i.auto)return `قيد سوا خاطئ ${i.p==ME?'عليك':'على '+NM[i.p]}: ${i.p==ME?'أعلنت':'أعلن'} سوا وبقيت أكلات لا ${i.p==ME?'تكسبها':'يكسبها'}`;
  const tx=qMsg(i.type,i.p,i.pid,i.rid);
  if(i.auto)return tx;
@@ -101,11 +106,11 @@ function showResult(r){
  const row=(l,a,b)=>`<tr><td>${l}</td><td>${a}</td><td>${b}</td></tr>`,wn=our>0?0:our<0?1:-1;
  const tot=`<tr class="tot"><td>الجولة${d&&d.m>1?' ×'+d.m:''}</td><td class="${wn==0?'win':''}">${pu}</td><td class="${wn==1?'win':''}">${pt}</td></tr>`;
  const tb=d?`<table class="rt"><tr><th></th><th class="a">لنا</th><th class="b">لهم</th></tr>${row('الأبناط',d.raw[us],d.raw[them])}${row('نقاط الأوراق',d.cp[us],d.cp[them])}${row('المشاريع',d.pp[us],d.pp[them])}${row('البلوت',d.bl[us],d.bl[them])}${tot}</table>`:`<table class="rt">${tot}</table>`;
- const gw=end?S_[us]>S_[them]:our>0,hd=end?(gw?'فزتم باللعبة!':'خسرتم اللعبة'):our>0?'كسبتم الجولة':our<0?'خسرتم الجولة':'تعادل';
- $('ovb').className=gw?'win':(our<0||end)?'lose':'';
- $('ovb').innerHTML=`<div class="ico ${gw?'up':(our<0||end)?'dn':''}">${gw?'🏆':(our<0||end)?'💔':'🤝'}</div><h2>${hd}</h2>${STREAK>=2&&!end?`<div class="stk">🔥 ${STREAK} جولات متتالية</div>`:''}${m?`<div class="nt">${m}</div>`:''}${tb}<div class="sum">المجموع: لنا <b class="a">${S_[us]}</b> — لهم <b class="b">${S_[them]}</b></div>${end?'<button onclick="newGame()">لعبة جديدة</button>':'<div class="cdb"><i></i></div>'}`;
+ const gw=!SPEC&&(end?S_[us]>S_[them]:our>0),hd=SPEC?(end?'انتهت اللعبة':'انتهت الجولة'):end?(gw?'فزتم باللعبة!':'خسرتم اللعبة'):our>0?'كسبتم الجولة':our<0?'خسرتم الجولة':'تعادل';
+ $('ovb').className=gw?'win':(!SPEC&&(our<0||end))?'lose':'';
+ $('ovb').innerHTML=`<div class="ico ${gw?'up':(!SPEC&&(our<0||end))?'dn':''}">${SPEC?'🎴':gw?'🏆':(our<0||end)?'💔':'🤝'}</div><h2>${hd}</h2>${STREAK>=2&&!end?`<div class="stk">🔥 ${STREAK} جولات متتالية</div>`:''}${m?`<div class="nt">${m}</div>`:''}${tb}<div class="sum">المجموع: لنا <b class="a">${S_[us]}</b> — لهم <b class="b">${S_[them]}</b></div>${end?(NETON&&!netOwner()?'<div class="nt">بانتظار مالك الغرفة لبدء لعبة جديدة</div>':'<button onclick="newGame()">لعبة جديدة</button>'):'<div class="cdb"><i></i></div>'}`;
  $('ov').style.display='flex';RESULT=!end;
- const st=$('stage');st.classList.remove('gw','gl');if(our>0)st.classList.add('gw');else if(our<0){st.classList.add('gl','shake');setTimeout(()=>st.classList.remove('shake'),600)}
+ const st=$('stage');st.classList.remove('gw','gl');if(SPEC);else if(our>0)st.classList.add('gw');else if(our<0){st.classList.add('gl','shake');setTimeout(()=>st.classList.remove('shake'),600)}
  if(r.info&&r.info.k=='kaboot'){splash('كبوت!',4);confetti(60)}
- else if(our>0)confetti(end?60:18);
- botReact(our,r.info)}
+ else if(our>0&&!SPEC)confetti(end?60:18);
+ if(!NETON)botReact(our,r.info)}
