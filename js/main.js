@@ -3,4 +3,4 @@ applySkin();loadSkin();
 document.addEventListener('click',()=>{if(ENG.waiting())ENG.skip()});
 lobbyShow();
 {const rc=(new URLSearchParams(location.search).get('room')||'').toUpperCase();
- if(/^[A-Z0-9]{5}$/.test(rc)){$('lcode').value=rc;if(lsGet('baloot_name')&&serverBase())lobbyJoin(rc);else lmsg('اكتب اسمك ثم اضغط «دخول»')}}
+ if(/^[A-Z0-9]{5}$/.test(rc)){$('lcode').value=rc;if(lsGet('baloot_name'))lobbyJoin(rc);else lmsg('اكتب اسمك ثم اضغط «دخول»')}}

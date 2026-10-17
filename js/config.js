@@ -7,6 +7,5 @@ const SUL=['S','H','C','D'],ALLK=[...RK.flatMap(r=>SUL.map(x=>r+x)),'back','rug'
 const PLAY_MS={bot:720,look:450,hold:300,sweep:250};
 // مهلة دور اللاعب الحقيقي بالثواني للعب الجماعي لاحقًا (0 = بلا مهلة). عند انتهائها يلعب البوت عنه. غير مستخدمة بعد.
 const TURN_SECS={normal:30,fast:10,none:0};
-// عنوان خادم اللعب الجماعي (Cloudflare Worker)، مثل 'https://baloot-server.اسمك.workers.dev'. إن تُرك فارغًا تطلبه الصفحة مرة واحدة وتحفظه في المتصفح.
-// وللتجربة المحلية: افتح الصفحة بـ ?server=http://localhost:8787
-const SERVER_URL='';
+// عنوان خادم اللعب الجماعي (ثابت، لا يدخله اللاعبون). للتجربة المحلية فقط: افتح الصفحة من localhost بـ ?server=http://localhost:8787
+const SERVER_URL='https://baloot-server.sjm111cia.workers.dev';

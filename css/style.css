@@ -481,3 +481,7 @@ body.onl #emb{display:none}
 .rs span{color:#9aa1ad;font-size:13px;min-width:54px}.rs b{flex:1}.rs.t0{border-inline-start:4px solid #5aa0e8}.rs.t1{border-inline-start:4px solid #e8685a}
 .rm span{flex:1}
 .rset{display:flex;flex-direction:column;gap:6px;font-size:14px}.rset label{display:flex;gap:8px;align-items:center}
+#chat{z-index:50}
+.wnote{margin:0 0 8px;color:#c9d0da;font-size:14px;line-height:1.7}
+#rpb button.go{background:var(--gold);color:#2a1d05;font-weight:800;font-size:16px;padding:10px 20px}
+#rpb button:disabled{opacity:.45}
