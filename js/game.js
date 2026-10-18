@@ -43,7 +43,9 @@ function renderAct(cak){
   else h=[G.rd==1?'بس':'ولا','أشكل','حكم','صن'].map(t=>`<button disabled>${t}</button>`).join('')}
  else if(ph=='q'&&p)h=`<button class="bn" onclick="aQ(1)">قبلك</button><button class="bp" onclick="aQ(0)">${p.rd==1?'بس':'ولا'}</button>`;
  else if(ph=='f'&&p)h=`<button class="bn" onclick="aF(1)">صن ☀</button><button class="bp" onclick="aF(0)">بس</button>`;
- else if(ph=='d'&&p){const n=p.n;h=(p.two?`<button class="bh" onclick="aD(1,0)">${n} مفتوح</button><button class="ba" onclick="aD(1,1)">${n} مقفل</button>`:`<button class="bh" onclick="aD(1,0)">${n}</button>`)+`<button class="bp" onclick="aD(0)">بس</button>`}
+ else if((ph=='d'||ph=='v')&&p&&p.k=='double'){const n=p.n;h=(p.two?`<button class="bh" onclick="aD(1,0)">${n} مفتوح</button><button class="ba" onclick="aD(1,1)">${n} مقفل</button>`:`<button class="bh" onclick="aD(1,0)">${n}</button>`)+`<button class="bp" onclick="aD(0)">بس</button>`}
+ else if(ph=='v'&&p&&p.k=='toSun')h=`<button class="bn" onclick="aW(1)">اقلب صن ☀</button><button class="bh" onclick="aW(0)">تأكيد الحكم</button>`;
+ else if(ph=='x')h=`<button id="qb" onclick="qaidUI()">قيد</button>`; // يمكن القيد أثناء انتظار النتيجة
  else if(ph=='p'){
   const dcl=G.n==0&&!G.dc[ME]&&!G.fd[ME]; // الزر ثابت دائمًا قبل لعب أول ورقة (فلا يكشف أن معك مشروعًا)
   h=`<button id="qb" onclick="qaidUI()">قيد</button>`+(dcl?`<button id="pjb" class="on" onclick="projMenu()">المشاريع</button>`:'')+(hk()?`<button class="${UI.ak?'on':''}" ${cak?'':'disabled'} onclick="tkToggle()">إكة</button>`:'')+`<button id="bs" onclick="sawa()" ${G.turn==ME&&!G.t.length&&G.n>=1?'':'disabled'}>سوا</button>`}
@@ -54,10 +56,13 @@ function hb(k,s){UI.pick=0;ENG.bid(ME,k,s)}
 function aQ(y){ENG.answerBefore(ME,y)}
 function aF(y){ENG.answerFlip(ME,y)}
 function aD(y,cl){ENG.answerDouble(ME,y,cl)}
+function aW(y){ENG.answerSun(ME,y)}
 function tkToggle(){UI.ak=!UI.ak;render()}
 function hp(c){
  if(UI.pm)commitP();
- const a=UI.ak;UI.ak=0;ENG.play(ME,c.s*8+c.r,!!a)}
+ const id=c.s*8+c.r;
+ if(UI.sel!==id){UI.sel=id;render();return} // لمسة أولى: تحديد الورقة، ولمسة ثانية عليها: إنزالها
+ UI.sel=-1;const a=UI.ak;UI.ak=0;ENG.play(ME,id,!!a)}
 function sawa(){ENG.sawa(ME)}
 function newGame(){STREAK=0;ENG.newGame()}
 function specTurn(){SPECSEAT=(SPECSEAT+1)%4;if(typeof netView=='function')netView();render()}

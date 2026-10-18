@@ -77,9 +77,12 @@ function checkRound(E,label){
     const x=R();
     if(x<.25)E.bid(0,'p');else if(x<.5&&p.canAsh)E.bid(0,'a');else if(x<.75)E.bid(0,'h',p.rd==1?p.flip:(p.flip+1)%4);else E.bid(0,'s');
     return true}
+   if(p.k=='toSun'){E.answerSun(0,R()<.4);return true}
    if(p.k=='before'){E.answerBefore(0,R()<.5);return true}
    if(p.k=='flip'){E.answerFlip(0,R()<.5);return true}
    if(p.k=='double'){E.answerDouble(0,R()<.4,R()<.5?1:0);return true}
+   if(p.k=='lay'){ // إنزال المشروع: أحيانًا الأوراق الصحيحة وأحيانًا غشًا
+    if(R()<.5&&G.pcd[0].length)E.lay(0,G.pcd[0].flat().map(idc));else E.lay(0,G.h[0].slice(0,3).map(idc));return true}
    if(p.k=='play'){
     const h=G.h[0];
     // بعد أول أكلة نجرّب فتح قيد على الخصم (سيكون خاطئًا لأن البوتات لا تغش)
@@ -87,7 +90,7 @@ function checkRound(E,label){
      const opp=[1,3].map(j=>G.pl[j]).flat();const c=opp[R()*opp.length|0];
      E.qaidSet(0,{t:'cut',pc:idc(c),rq:idc(c)==0?1:0});
      claims++;E.qaidConfirm(0);return true}
-    if(G.n==0&&!G.fd[0]&&G.po[0].length&&R()<.5){E.project(0,G.po[0][0].items.map(x=>x.v))}
+    if(G.n==0&&!G.fd[0]&&!G.dc[0]){const x=R();if(G.po[0].length&&x<.5)E.project(0,G.po[0][0].items.map(x=>x.v));else if(x>.85)E.project(0,[50])} // إعلان صحيح أو كاذب
     let c;const L=E.legal(h,0);
     if(R()<.12&&L.length<h.length){c=h.find(x=>!L.includes(x));cheats++}else c=L[R()*L.length|0];
     E.play(0,idc(c),false);return true}
@@ -122,6 +125,7 @@ function checkRound(E,label){
    if(p.k=='before'){E.answerBefore(s,false);return true}
    if(p.k=='flip'){E.answerFlip(s,false);return true}
    if(p.k=='double'){E.answerDouble(s,false);return true}
+   if(p.k=='toSun'){E.answerSun(s,false);return true}
    if(p.k=='play'){
     const h=G.h[s],L=E.legal(h,s);
     // المقعد 1 يغش مرة واحدة عمدًا في الأكلة الأولى إن أمكن
@@ -161,6 +165,7 @@ function checkRound(E,label){
   if(p.k=='bid'){E.bid(0,'s');return true}
   if(p.k=='before'){E.answerBefore(0,false);return true}
   if(p.k=='double'){E.answerDouble(0,false);return true}
+  if(p.k=='toSun'){E.answerSun(0,false);return true}
   if(p.k=='play'){
    const L=E.legal(G.h[0],0);
    if(G.n>=1&&!opened&&E.qaidOpen(0)){opened=true;n0=G.pl[1].length+G.pl[3].length;
@@ -208,5 +213,115 @@ function checkRound(E,label){
  assert.strictEqual(E.project(0,[20]),false);
  assert.strictEqual(E.bid(0,'p'),true);
  console.log('7) رفض الأفعال غير المشروعة ✓');
+}
+
+// ---------- 8) قاعدة الإكة: الشريك القاطع لا يُعفى من الدق إلا بالآس أو بإكة معلنة ----------
+{
+ const r=rig({seed:3});const {E}=r;E.newGame();const G=E.G,C=(s,r)=>({s,r});
+ G.mode='h';G.tr=0;G.cl=0;G.ph='p';
+ const h=[C(0,2),C(1,1)]; // 9♠ (حكم) و8♥، ولا ديناري معه
+ G.t=[{i:2,c:C(3,3)},{i:3,c:C(3,0)}];G.ann=0; // الشريك (2) يقود 10♦ والآس لم يخرج
+ assert(E.legal(h,0).length==1&&E.legal(h,0)[0].s==0,'10 بلا إكة: يجب الدق');
+ G.ann=1;assert.strictEqual(E.legal(h,0).length,2,'مع إكة معلنة: حر');
+ G.t=[{i:2,c:C(3,7)},{i:3,c:C(3,0)}];G.ann=0;assert.strictEqual(E.legal(h,0).length,2,'الآس يغني عن الإكة');
+ G.t=[{i:1,c:C(3,3)},{i:2,c:C(3,0)},{i:3,c:C(3,1)}];assert(E.legal(h,0).every(c=>c.s==0),'الخصم رابح: دق (كما كان)');
+ // إعلان إكة على الآس أو على غير الأعلى = قيد
+ E.setHuman(0,true);G.t=[];G.n=0;G.turn=0;G.h[0]=[C(3,7),C(1,1)];
+ assert(E.play(0,3*8+7,true));assert(G.vio.some(v=>v.type=='ace'),'الإكة على الآس قيد');assert.strictEqual(G.ann,1);
+ console.log('8) قاعدة الإكة ✓');
+}
+
+// ---------- 9) المشاريع: إعلان حر، إنزال باختيار الأوراق، قيد المشروع الكاذب ----------
+{
+ const r=rig({seed:4});const {E}=r;E.setHuman(0,true);E.setHuman(1,true);E.newGame();const G=E.G,C=(s,r)=>({s,r});
+ G.ph='p';G.mode='h';G.tr=0;G.n=0;G.turn=0;G.t=[];G.fd={};G.dc=[0,0,0,0];
+ G.h[0]=[C(1,0),C(1,1),C(1,2),C(2,3),C(2,5),C(3,3),C(3,5),C(0,4)];G.po[0]=E._t.projOptions(G.h[0]);
+ assert.strictEqual(E.project(0,[50,50]),true,'إعلان كاذب مسموح');
+ assert.deepStrictEqual(G.pv[0],[50,50]);assert.strictEqual(G.dd[0],1);assert(G.tag[0].includes('خمسين'));
+ assert.strictEqual(E.project(0,[20]),false,'لا إعلان ثانٍ');
+ G.n=1;G.pw=0;G.turn=0;G.t=[];G.rv[0]=0;G.pl[0]=[C(1,3)];
+ assert.strictEqual(E.pending(0).k,'lay');assert.strictEqual(E.play(0,G.h[0][0].s*8+G.h[0][0].r,false),false,'لا لعب قبل الإنزال');
+ assert.strictEqual(E.lay(0,[1*8+0,1*8+1,1*8+2]),true);
+ assert.strictEqual(G.rv[0],1);assert(G.vio.some(v=>v.type=='proj'&&v.i==0),'الإنزال لا يطابق الإعلان');
+ assert.strictEqual(E.pending(0).k,'play');
+ // الخصم (مقعد 1 بشري) يقيّد مشروعًا كاذبًا
+ G.turn=1;G.pl[0].push(C(2,2));
+ assert.strictEqual(E.qaidOpen(1),true);E.qaidSet(1,{t:'proj'});assert.strictEqual(E.qaidConfirm(1),true);
+ const re=r.events.filter(x=>x.t=='roundEnd').pop();assert(re&&re.info.type=='proj'&&re.info.valid==1,'قيد صحيح على مشروع كاذب');
+ console.log('9) المشاريع والإنزال وقيد المشروع الكاذب ✓');
+}
+
+// ---------- 10) التكبير بالحكم، الدبل عند خمس أوراق، قلب الحكم صنًّا، كبوت الدبل ----------
+{
+ const r=rig({seed:3});const {E}=r;E.newGame();const G=E.G,C=(s,r)=>({s,r});
+ G.mode='h';G.tr=0;G.cl=0;G.ph='p';G.ann=0;
+ const h=[C(0,4),C(0,2),C(0,1)]; // ولد(4)... ترتيب الحكم: J=4,9=2,8=1
+ const J=C(0,4);const hand=[J,C(0,2),C(0,1)];
+ // الشريك (2) يقود 7♠ حكم والرابح حاليًا شريكي: حر
+ G.t=[{i:2,c:C(0,0)}];assert.strictEqual(E.legal(hand,0).length,3,'الشريك رابح: لا تكبير');
+ // الخصم (3) لعب التاسعة بعد قيادة شريكي: يلزم التكبير بالولد
+ G.t=[{i:2,c:C(0,0)},{i:3,c:C(0,2)}];const L=E.legal(hand,0);assert(L.length==1&&L[0].r==4,'الخصم رابح: يلزم الولد');
+ // الدبل عند خمس أوراق: لحظة سؤال الدبل لا يوجد لدى أحد أكثر من 5
+ let seen5=true,seenSun=false;
+ for(let sd=11;sd<40&&!seenSun;sd++){
+  const r2=rig({seed:sd});const E2=r2.E;E2.setHuman(0,true);E2.newGame();let stopped=false;
+  const drv=()=>{const G2=E2.G,p=E2.pending(0);if(!p)return false;
+   if(p.k=='bid'){E2.bid(0,'h',p.rd==1?p.flip:(p.flip+1)%4);return true}
+   if(p.k=='before'){E2.answerBefore(0,false);return true}if(p.k=='flip'){E2.answerFlip(0,false);return true}
+   if(p.k=='double'){if(!G2.h.every(x=>x.length==5))seen5=false;E2.answerDouble(0,false);return true}
+   if(p.k=='toSun'){seenSun=true;E2.answerSun(0,true);return true}
+   if(p.k=='play'||p.k=='lay')stopped=true;return false};
+  r2.run(()=>seenSun||stopped,drv,100000);
+ }
+ assert(seenSun,'لم يُعرض خيار القلب إلى صن');
+ // الكبوت المدبَّل = 25 فقط
+ const r3=rig({seed:2});const E3=r3.E;E3.newGame();const g=E3.G;
+ g.mode='h';g.tr=0;g.buyer=0;g.m=2;g.dt=1;g.tk=[0,8];g.pt=[0,152];g.pv=[[],[],[],[]];g.bl=[0,0];g.pw=-1;g.ph='x';
+ console.log('10) التكبير والدبل والقلب ✓',seen5?'(الدبل بخمس أوراق)':'(لم يُسأل الدبل في هذه الجولة)');
+}
+
+// ---------- 11) انتظار النتيجة: 7 ثوانٍ ثابتة، يمكن القيد خلالها، وأي ضغط يُظهرها فورًا ولا قيد بعدها ----------
+{
+ const toWait=seed=>{const r=rig({seed});const E=r.E;E.setHuman(0,true);E.setHuman(1,true);E.newGame();
+  const drv=()=>{for(const s of [0,1]){const p=E.pending(s);if(!p)continue;
+   if(p.k=='bid'){s==0?E.bid(0,'h',p.rd==1?p.flip:(p.flip+1)%4):E.bid(1,'p');return true}
+   if(p.k=='before'){E.answerBefore(s,false);return true}if(p.k=='flip'){E.answerFlip(s,false);return true}
+   if(p.k=='double'){E.answerDouble(s,false);return true}if(p.k=='toSun'){E.answerSun(s,false);return true}
+   if(p.k=='lay'){E.lay(s,[]);return true}
+   if(p.k=='play'){E.play(s,idc(E.legal(E.G.h[s],s)[0]),false);return true}}return false};
+  assert(r.run(()=>E.G&&E.G.ph=='x',drv),'لم نصل إلى انتظار النتيجة');return r};
+ // (أ) لا تظهر قبل الـ7 ثوانٍ، ويمكن القيد خلالها
+ let r=toWait(6),E=r.E;r.adv(3000);assert.strictEqual(E.G.ph,'x');
+ assert.strictEqual(E.qaidOpen(1),true,'القيد مسموح أثناء الانتظار');E.qaidSet(1,{t:'sawa'});E.qaidConfirm(1);assert.strictEqual(E.G.ph,'e');
+ // (ب) أي ضغط يُظهرها فورًا، وبعدها لا قيد
+ r=toWait(7);E=r.E;r.adv(1000);assert.strictEqual(E.skip(),true);assert.strictEqual(E.G.ph,'e');assert.strictEqual(E.qaidOpen(1),false,'لا قيد بعد ظهور النتيجة');
+ // (ج) وبلا ضغط تظهر بعد 7 ثوانٍ
+ r=toWait(8);E=r.E;r.adv(6000);assert.strictEqual(E.G.ph,'x');r.adv(2000);assert.strictEqual(E.G.ph,'e');
+ console.log('11) انتظار النتيجة 7 ثوانٍ وأي ضغط يُنهيه ✓');
+}
+
+// ---------- 12) سباق التدبيل وقلب الصن بعد شراء الحكم ----------
+{
+ const toV=mode=>{for(let sd=20;sd<120;sd++){
+  const r=rig({seed:sd});const E=r.E;E.setHuman(0,true);E.setHuman(1,true);E.newGame();let bad=false;
+  const drv=()=>{for(const s of [0,1]){const p=E.pending(s);if(!p)continue;
+   if(p.k=='bid'){if(s==0)E.bid(0,'h',p.rd==1?p.flip:(p.flip+1)%4);else E.bid(1,'p');return true}
+   if(p.k=='before'){E.answerBefore(s,false);return true}if(p.k=='flip'){E.answerFlip(s,false);return true}
+   if(E.G.ph=='v')return false;if(p.k=='double'){E.answerDouble(s,false);return true}return false}return false};
+  r.run(()=>E.G&&(E.G.ph=='v'||E.G.ph=='p'),drv,100000);
+  if(E.G.ph=='v'&&E.G.buyer==0)return E}return null};
+ // الخصم يسبق بالتدبيل: يُقفل الحكم ولا قلب
+ let E=toV();assert(E,'لم نجد جولة يشتري فيها المقعد 0 حكمًا');
+ assert.strictEqual(E.pending(0).k,'toSun');assert.strictEqual(E.pending(1).k,'double');
+ assert.strictEqual(E.answerDouble(1,true,false),true);
+ assert.strictEqual(E.G.mode,'h');assert.strictEqual(E.G.dt,1);assert.strictEqual(E.answerSun(0,true),false,'لا قلب بعد التدبيل');
+ assert.notStrictEqual((E.pending(0)||{}).k,'toSun');
+ // المشتري يسبق بالقلب: يصير صنًّا ويسقط تدبيل الحكم
+ E=toV();assert.strictEqual(E.answerSun(0,true),true);assert.strictEqual(E.G.mode,'s');assert.strictEqual(E.pending(1),null);
+ // التأكيد لا يمنع الخصم من التدبيل بعده، ولا تدبيل بعد نزول بقية الأوراق
+ E=toV();assert.strictEqual(E.answerSun(0,false),true);assert.strictEqual(E.G.ph,'v');assert.strictEqual(E.answerDouble(1,true,false),true);assert.strictEqual(E.G.dt,1);
+ E=toV();E.answerSun(0,false);E.answerDouble(1,false);
+ assert(E.G.ph=='d'&&E.G.dealt==1||E.G.ph=='v');
+ console.log('12) سباق التدبيل وقلب الصن ✓');
 }
 console.log('\nكل اختبارات المحرك نجحت');

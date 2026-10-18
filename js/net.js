@@ -19,7 +19,7 @@ const REMOTE={
  pending:()=>NET.V&&NET.V.pend||null,
  val:(c,L)=>(G.mode=='h'&&c.s==G.tr)?10+ST[c.r]:c.s==L?SN[c.r]:-1,
  pnames:i=>G.pv[i].map(v=>PJ[v]).join(' + '),
- bid:(s,k,x)=>netAct('bid',k,x),answerBefore:(s,y)=>netAct('answerBefore',!!y),answerFlip:(s,y)=>netAct('answerFlip',!!y),answerDouble:(s,y,cl)=>netAct('answerDouble',!!y,cl?1:0),
+ bid:(s,k,x)=>netAct('bid',k,x),answerBefore:(s,y)=>netAct('answerBefore',!!y),answerFlip:(s,y)=>netAct('answerFlip',!!y),answerSun:(s,y)=>netAct('answerSun',!!y),answerDouble:(s,y,cl)=>netAct('answerDouble',!!y,cl?1:0),
  play:(s,id,ak)=>netAct('play',id,!!ak),project:(s,want)=>netAct('project',want),lay:(s,ids)=>netAct('lay',ids),sawa:()=>netAct('sawa'),
  qaidOpen:()=>netAct('qaidOpen'),qaidSet:(s,sel)=>netAct('qaidSet',sel),qaidConfirm:()=>netAct('qaidConfirm'),qaidAck:()=>netAct('qaidAck'),
  newGame:()=>{netTx({t:'own',a:'newGame'})},nextRound:()=>netAct('nextRound'),waiting:()=>NET.wait,skip:()=>netAct('skip')
@@ -74,7 +74,7 @@ function leaveRoom(msg){
  NET.closing=true;clearInterval(NET.hb);if(NET.ws){try{if(NET.joined)NET.ws.send(JSON.stringify({t:'bye'}));NET.ws.close()}catch(e){}NET.ws=null}
  NET.V=null;NET.joined=false;NET.wait=false;NET.unread=0;NET.chatOpen=NET.roomOpen=NET.waitRoom=false;
  ENG=LOCAL;NETON=false;SPEC=false;ME=0;for(let j=0;j<4;j++)NM[j]=NM0[j];
- document.body.classList.remove('onl');$('chat').style.display='none';$('rp').style.display='none';$('cl').innerHTML='';$('nbn').style.display='none';
+ document.body.classList.remove('onl');$('chat').classList.remove('open','pulse');$('rp').style.display='none';$('cl').innerHTML='';$('nbn').style.display='none';
  for(const id of ['ov','qv','wait','pmenu'])$(id).style.display='none';
  try{history.replaceState(null,'',location.pathname)}catch(e){}
  lobbyShow(msg);
@@ -110,7 +110,7 @@ async function lobbyJoin(code){
 
 // ===== الدردشة =====
 function chatToggle(){
- NET.chatOpen=!NET.chatOpen;$('chat').style.display=NET.chatOpen?'flex':'none';
+ NET.chatOpen=!NET.chatOpen;$('chat').classList.toggle('open',NET.chatOpen);
  if(NET.chatOpen){NET.unread=0;netBadges();$('ct').focus();$('cl').scrollTop=1e9}
 }
 function chatAdd(m){
@@ -119,8 +119,18 @@ function chatAdd(m){
  const L=$('cl'),down=L.scrollHeight-L.scrollTop-L.clientHeight<40;
  L.appendChild(d);while(L.children.length>150)L.firstChild.remove();
  if(down||m.cid==NET.cid)L.scrollTop=1e9;
- if(!NET.chatOpen&&!m.sys&&m.cid!=NET.cid){NET.unread++;netBadges()}
+ if(!m.sys&&m.cid!=NET.cid){chatNotify(m);if(!chatVisible()){NET.unread++;netBadges()}}
 }
+// الدردشة ظاهرة دائمًا في الشاشة الكبيرة (تحت النتائج السابقة)، وفي الجوال تُفتح بالزر
+const chatVisible=()=>matchMedia('(min-width:821px)').matches||NET.chatOpen;
+let chatAC=null,chatT=0;
+function chatNotify(m){
+ const c=$('chat');c.classList.remove('pulse');void c.offsetWidth;c.classList.add('pulse');
+ try{chatAC=chatAC||new(window.AudioContext||window.webkitAudioContext)();const o=chatAC.createOscillator(),g=chatAC.createGain();o.frequency.value=880;g.gain.value=.05;o.connect(g);g.connect(chatAC.destination);o.start();o.stop(chatAC.currentTime+.12)}catch(e){}
+ if(!chatVisible()){let t=$('cnt');if(!t){t=document.createElement('div');t.id='cnt';t.onclick=()=>{t.style.display='none';chatToggle()};document.body.appendChild(t)}
+  t.textContent='💬 '+m.name+': '+m.text.slice(0,60);t.style.display='block';clearTimeout(chatT);chatT=setTimeout(()=>t.style.display='none',4000)}
+ if(document.hidden)document.title='💬 رسالة جديدة'}
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)document.title='بلوت'});
 function chatSend(){const t=$('ct').value.trim();if(!t)return;netTx({t:'chat',text:t});$('ct').value=''}
 function netBadges(){
  $('cbd').textContent=NET.unread?'دردشة ('+NET.unread+')':'دردشة';

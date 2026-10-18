@@ -65,7 +65,7 @@ function create(env){
   if(!G.t.length){if(G.cl&&hk()){const nt=h.filter(c=>c.s!=G.tr);if(nt.length)return nt}return h}
   const L=G.t[0].c.s,same=h.filter(c=>c.s==L);
   if(same.length){
-   if(hk()&&L==G.tr){const mx=Math.max(...G.t.filter(t=>t.c.s==L).map(t=>ST[t.c.r])),up=same.filter(c=>ST[c.r]>mx);return up.length?up:same}
+   if(hk()&&L==G.tr&&win().i%2!=i%2){const mx=Math.max(...G.t.filter(t=>t.c.s==L).map(t=>ST[t.c.r])),up=same.filter(c=>ST[c.r]>mx);return up.length?up:same} // لا تكبير إن كان شريكك هو الرابح حاليًا
    return same}
   if(hk()){const tr=h.filter(c=>c.s==G.tr),w=win();
    // الشريك الرابح يعفيك من الدق فقط إن كانت ورقته الآس، أو ورقة أعلى أُعلنت إكة. وإلا فعليك الدق.
@@ -98,7 +98,7 @@ function create(env){
   RT++;RN++;W=null;QK=null;paused=0;PQ=[];
   const dk=[];for(let s=0;s<4;s++)for(let r=0;r<8;r++)dk.push({s,r});
   for(let i=dk.length-1;i>0;i--){const j=rnd()*(i+1)|0;[dk[i],dk[j]]=[dk[j],dk[i]]}
-  G={h:[0,1,2,3].map(()=>dk.splice(0,5)),fl:dk.pop(),dk,t:[],pt:[0,0],tk:[0,0],tr:-1,mode:'',n:0,pj:[0,0,0,0],pl:[[],[],[],[]],bl:[0,0],pw:-1,buyer:-1,rd:1,turn:(D+1)%4,cnt:0,ph:'b',fd:{},dc:[0,0,0,0],tag:['','','',''],ash:false,pk:[0,0,0,0],dealer:D,pile:[0,0,0,0],nf:0,m:1,dt:-1,coffee:0,cl:0,dst:0,q:[],po:[[],[],[],[]],pv:[[],[],[],[]],pcd:[[],[],[],[]],ps:[0,0,0,0],nq:0,bq:[],sb:-1,rv:{},vio:[],tl:[],sq:0,cs:-1,qa:null,res:null,dd:[0,0,0,0],ann:0};
+  G={h:[0,1,2,3].map(()=>dk.splice(0,5)),fl:dk.pop(),dk,t:[],pt:[0,0],tk:[0,0],tr:-1,mode:'',n:0,pj:[0,0,0,0],pl:[[],[],[],[]],bl:[0,0],pw:-1,buyer:-1,rd:1,turn:(D+1)%4,cnt:0,ph:'b',fd:{},dc:[0,0,0,0],tag:['','','',''],ash:false,pk:[0,0,0,0],dealer:D,pile:[0,0,0,0],nf:0,m:1,dt:-1,coffee:0,cl:0,dst:0,q:[],po:[[],[],[],[]],pv:[[],[],[],[]],pcd:[[],[],[],[]],ps:[0,0,0,0],nq:0,bq:[],sb:-1,rv:{},vio:[],tl:[],sq:0,cs:-1,qa:null,res:null,dd:[0,0,0,0],ann:0,recv:-1,dealt:0};
   G.h.forEach(sortH);
   emit({t:'deal',dealer:D});emit({t:'fresh'});
   bidStep()}
@@ -106,7 +106,7 @@ function create(env){
  // ===== المزايدة =====
  // G.cs: المقعد الذي ينتظره المحرك الآن (-1 لا أحد). botTurn يجدول قرار البوت إن كان صاحب الدور بوتًا.
  function botTurn(){
-  if(!G||paused||G.qa)return;const s=G.cs;if(s<0||humans[s])return;
+  if(!G||paused||G.qa)return;if(G.ph=='v')return vSched();const s=G.cs;if(s<0||humans[s])return;
   cue(()=>botDecide(s),G.ph=='p'?PMS.bot:1500)}
  // قرار البوت للمرحلة الحالية (للمقعد s)
  function botDecide(s){
@@ -115,6 +115,7 @@ function create(env){
   else if(ph=='q')ansQ(s,sn()>=5);
   else if(ph=='f')ansF(s,sn()>=7);
   else if(ph=='d'){const h=G.h[s],st=G.dst,base=hk()?hs(h,G.tr)/12:sn()/10;ansD(s,rnd()<base*[.9,.5,.3,.2][st]?1:0)}
+  else if(ph=='v')botV(s)
   else if(ph=='p')botPlay(s)}
  function bidStep(){G.cs=G.turn;changed();botTurn()}
  function bid(i,k,s){
@@ -125,15 +126,46 @@ function create(env){
   if(k=='s'&&!G.nq){const qc=beforeCands(i);if(qc.length){G.sb=i;G.bq=qc;G.ph='q';G.tag[i]='صن';return qNext()}}
   if(k=='h'&&!G.nf){const c=flipCands(i);if(c.length){G.fb={i,s};G.fq=c;G.ph='f';G.tag[i]='حكم '+SU[s];return flipNext()}}
   const fb=k=='a'?(i+2)%4:i,lb=k=='h'?'حكم '+SU[s]:k=='a'?'أشكل':'صن';
-  G.mode=k=='h'?'h':'s';G.tr=k=='h'?s:-1;G.buyer=i;G.ph='d';G.ash=k=='a';G.cs=-1;
+  G.mode=k=='h'?'h':'s';G.tr=k=='h'?s:-1;G.buyer=i;G.ph='d';G.ash=k=='a';G.cs=-1;G.recv=fb;G.dealt=0;
   G.tag=['','','',''];say(i,lb);
+  G.turn=(G.dealer+1)%4;changed();
+  after(dblStart,1500)} // التدبيل قبل توزيع بقية الأوراق: الجميع بخمس أوراق فقط
+ // توزيع بقية الأوراق بعد انتهاء التدبيل (وبعد خيار قلب الحكم صنًّا)
+ function dealRest(){
+  const fb=G.recv;G.ph='d';G.cs=-1;G.dealt=1;
   for(let j=0;j<4;j++)G.h[j].push(...G.dk.splice(0,j==fb?2:3));
   G.h[fb].push(G.fl);G.h.forEach(sortH);
   // البوتات تُعلن أفضل مشروع تلقائيًا، واللاعب البشري يُعلن مشروعه بنفسه
   for(let j=0;j<4;j++){G.po[j]=projOptions(G.h[j]);setProj(j,!humans[j]&&G.po[j].length?G.po[j][0]:null)}
   G.turn=(G.dealer+1)%4;G.fly=fb;emit({t:'fresh'});changed();
-  after(()=>{G.fly=null;changed()},1500);after(dblStart,2800)}
- function flipCands(i){const f0=(G.dealer+1)%4;if(G.fl.r==7)return i==f0?[]:[f0];const pi=((i-f0)%4+4)%4;return [1,2,3].filter(p=>p>pi).map(p=>(f0+p)%4)}
+  after(()=>{G.fly=null;changed()},1500);after(startPlay,2800)}
+ // نافذة الحكم (ph 'v'): بعد شراء الحكم يستطيع الخصمان التدبيل، ويستطيع المشتري قلبه صنًّا أو تأكيده. الكل اختياري ويعتمد على السرعة:
+ // التدبيل يقفل الحكم على المشتري، وقلبه صنًّا يُلغي تدبيل الحكم، وتُغلق النافذة بتوزيع بقية الأوراق (لا تدبيل بعد نزولها).
+ function startV(){G.ph='v';G.cs=-1;G.vw={ans:[0,0,0,0],sch:[0,0,0,0]};changed();vSched()}
+ function vSched(){
+  if(!G||G.ph!='v'||!G.vw)return;
+  for(let s=0;s<4;s++){
+   if(s==(G.buyer+2)%4||G.vw.ans[s]||humans[s]||G.vw.sch[s])continue;
+   G.vw.sch[s]=1;
+   after(()=>{if(!G||G.ph!='v'||!G.vw)return;G.vw.sch[s]=0;if(!G.vw.ans[s]&&!humans[s])botV(s)},900+rnd()*1900)}}
+ function botV(s){
+  const h=G.h[s];
+  if(s==G.buyer)vSun(s,h.reduce((a,c)=>a+(c.r==7?3:c.r==3?1:0),0)>=6&&rnd()<.4);
+  else vDbl(s,rnd()<hs(h,G.tr)/12*.9)}
+ function vClose(){
+  const v=G.vw,b=G.buyer;
+  if(v.ans[b]&&[0,1,2,3].every(s=>s%2==b%2||v.ans[s])){G.vw=null;return dealRest()}
+  changed()}
+ function vDbl(s,y,cl){
+  const v=G.vw;if(G.ph!='v'||!v||s%2==G.buyer%2||v.ans[s])return false;
+  if(!y){v.ans[s]=1;G.tag[s]='بس';say(s,'بس');vClose();return true}
+  G.vw=null;G.ph='d';doDouble(s,cl);G.dst++;dblNext();return true}
+ function vSun(s,y){
+  const v=G.vw;if(G.ph!='v'||!v||s!=G.buyer||v.ans[s])return false;
+  if(!y){v.ans[s]=1;G.tag[s]='تأكيد الحكم';say(s,'تأكيد الحكم');vClose();return true}
+  G.vw=null;G.mode='s';G.tr=-1;G.cl=0;G.dst=0;G.dt=-1;G.m=1;G.ph='d';G.cs=-1;G.tag=['','','',''];G.tag[s]='صن';say(s,'اقلب صن');splash('صن!',2,'قلب الحكم');
+  const b=s%2,o=1-b;if(S[b]>100&&S[o]<=100)dblNext();else dealRest();return true}
+ function flipCands(i){const f0=(G.dealer+1)%4;if(G.fl.r==7)return i==f0?[]:[f0];return [1,2,3].map(k=>(i+k)%4)}
  function flipNext(){
   if(!G.fq.length){G.nf=1;G.ph='b';bid(G.fb.i,'h',G.fb.s);G.nf=0;return}
   G.cs=G.fq.shift();changed();botTurn()}
@@ -151,21 +183,23 @@ function create(env){
   const pw=G.rd==1?'بس':'ولا';G.tag[c]=pw;say(c,pw);qNext()}
 
  // ===== الدبل =====
- function dblStart(){const b=G.buyer%2,o=1-b;G.dst=0;if(hk()||(S[b]>100&&S[o]<=100))dblNext();else startPlay()}
+ function dblStart(){const b=G.buyer%2,o=1-b;G.dst=0;if(hk())return startV();if(S[b]>100&&S[o]<=100)dblNext();else dealRest()}
  function dblNext(){
   const b=G.buyer%2,st=G.dst;
-  if(st>3||(!hk()&&st>0))return startPlay();
+  if(st>3||(!hk()&&st>0))return dealRest();
   G.q=st==0?[0,1,2,3].map(k=>(G.buyer+1+k)%4).filter(x=>x%2!=b):st==2?[G.dp]:[G.buyer];askD()}
  function askD(){
-  if(!G.q.length){G.cs=-1;return startPlay()}
+  if(!G.q.length){G.cs=-1;return dealRest()}
   G.cs=G.q.shift();changed();botTurn()}
  function ansD(s,y,cl){
   if(G.ph!='d'||G.cs!=s)return;
   if(!y){G.tag[s]='بس';say(s,'بس');return askD()}
+  doDouble(s,cl);G.dst++;dblNext()}
+ function doDouble(s,cl){
   const st=G.dst,two=hk()&&(st==0||st==2);G.dt=s%2;if(st==0)G.dp=s;if(st==3)G.coffee=1;G.m=Math.min(st+2,4);
   if(two)G.cl=cl===undefined?(rnd()<.3?1:0):(cl?1:0);else if(st==1||st==3)G.cl=0;
   {const sb=two?(G.cl?'مقفل':'مفتوح'):'',w=DN[st]+(sb?' '+sb:'');G.tag[s]=w;say(s,w);splash(DN[st]+'!',st+2,sb)}
-  G.dst++;dblNext()}
+  }
  function startPlay(){G.ph='p';G.tag=['','','',''];G.turn=(G.dealer+1)%4;G.cs=-1;changed();after(next,1500)}
 
  // ===== اللعب =====
@@ -237,7 +271,7 @@ function create(env){
   const raw=[0,1].map(t=>G.pt[t]+(pp[t]+bl[t])*k),kb=G.tk[0]==8?0:G.tk[1]==8?1:-1;
   const pot=hk()?16:26,cp=[0,0];cp[o]=rp(G.pt[o]);cp[eb]=pot-cp[o];G.det={raw:[G.pt[0],G.pt[1]],cp,pp:[pp[0],pp[1]],bl:[bl[0],bl[1]],m};
   let q=[0,0],info=null,w;
-  if(kb>=0){w=kb;q[w]=(hk()?25:44)+pa[w]+bl[w];info={k:'kaboot',w}}
+  if(kb>=0){w=kb;q[w]=(hk()||m>1?25:44)+pa[w]+bl[w];info={k:'kaboot',w}}
   else{
    const win=m>1?raw[eb]>raw[o]:(raw[eb]>raw[o]||(raw[eb]==raw[o]&&!(hk()&&pp[o]>0)));w=win?eb:o;
    if(m>1||!win){q[w]=m*(hk()?16:26)+(m==2?2:1)*(pp[0]+pp[1])+bl[0]+bl[1];
@@ -246,6 +280,7 @@ function create(env){
   fin(q,info,w)}
  // info: وصف منظَّم لسبب النتيجة (kaboot / dbl / lost / qaid) تصيغه الواجهة نصًّا حسب منظور كل لاعب.
  function fin(p,info,cw=-1){
+  if(W){W=null;emit({t:'waitEnd'})}
   G.ph='e';G.cs=-1;S[0]+=p[0];S[1]+=p[1];if(G.coffee&&cw>=0)S[cw]=Math.max(152,S[1-cw]+1,S[cw]);
   HIST.push({n:RN,mode:G.mode?(hk()?'حكم '+SU[G.tr]:'صن'):'—',m:G.m,p:[p[0],p[1]]});
   D=(D+1)%4;
@@ -259,7 +294,7 @@ function create(env){
  // ـ طلب بشري: qaidOpen ثم qaidSet (الاختيارات) ثم qaidConfirm. يصحّ القيد إن طابق مخالفة مسجَّلة وإلا انقلب على صاحبه (falseFlip).
  // ـ كشف البوت: بعد اللعب تكشف البوتات مخالفات البشر (qaidAuto) وتظهر النافذة لغير المقيِّد حتى يضغط «متابعة» (qaidAck).
  function qaidEnd(t,info){
-  if(G.ph!='p')return;
+  if(G.ph!='p'&&G.ph!='x')return;
   const m=G.m,p=[0,0],pa=[0,0],bl=[G.bl[0]/10,G.bl[1]/10];
   for(let i=0;i<4;i++)pa[i%2]+=pjP(i);
   p[t]=(hk()?16:26)*m+(m==2?2:1)*pa[t]+bl[t];
@@ -278,7 +313,7 @@ function create(env){
   qaidAuto({type:v.type,p:v.i,pid,rid},by=>qaidEnd(1-v.i%2,{k:'qaid',type:v.type,p:v.i,by,pid,rid,valid:1,auto:1}));
   return true}
  function qaidOpen(seat){
-  if(!G||!humans[seat]||G.ph!='p'||G.qa)return false;
+  if(!G||!humans[seat]||(G.ph!='p'&&!(G.ph=='x'&&W))||G.qa)return false;
   if(![(seat+1)%4,(seat+3)%4].some(j=>G.pl[j].length)){say(-1,'لم يلعب الخصم أي ورقة بعد');return false}
   G.qa={by:seat,auto:0,t:'',pc:-1,rq:-1,p:-1};paused=1;G.cs=-1;changed();return true}
  const okId=x=>Number.isInteger(x)&&x>=-1&&x<32;
@@ -336,7 +371,7 @@ function create(env){
    if(!tc.length){if(cl&&mode){const nt=h.filter(c=>SU_(c)!=tr);if(nt.length)return nt}return h}
    const L=SU_(tc[0]),same=h.filter(c=>SU_(c)==L);
    if(same.length){
-    if(mode&&L==tr){let mx=-1;for(const c of tc)if(SU_(c)==L)mx=Math.max(mx,ST[RK_(c)]);const up=same.filter(c=>ST[RK_(c)]>mx);return up.length?up:same}
+    if(mode&&L==tr&&trickWin(tc,tp)%2!=p%2){let mx=-1;for(const c of tc)if(SU_(c)==L)mx=Math.max(mx,ST[RK_(c)]);const up=same.filter(c=>ST[RK_(c)]>mx);return up.length?up:same}
     return same}
    if(mode){const t=h.filter(c=>SU_(c)==tr);
     const wp=trickWin(tc,tp);
@@ -415,6 +450,7 @@ function create(env){
   if(G.ph=='q'&&G.cs==seat)return {k:'before',rd:G.rd};
   if(G.ph=='f'&&G.cs==seat)return {k:'flip'};
   if(G.ph=='d'&&G.cs==seat){const st=G.dst;return {k:'double',st,n:DN[st],two:hk()&&(st==0||st==2)}}
+  if(G.ph=='v'&&G.vw&&!G.vw.ans[seat]){if(seat==G.buyer)return {k:'toSun'};if(seat%2!=G.buyer%2)return {k:'double',st:0,n:DN[0],two:true}}
   if(needLay(seat))return {k:'lay',want:G.pv[seat].slice()};
   if(G.ph=='p'&&G.turn==seat&&G.t.length<4)return {k:'play',legal:legal(G.h[seat],seat).map(idc)};
   return null}
@@ -426,7 +462,8 @@ function create(env){
   deal,newGame(){S[0]=0;S[1]=0;HIST.length=0;deal()},
   nextRound(){if(G&&G.ph=='e'&&G.res&&!G.res.end){deal();return true}return false},
   waiting(){return !!W},
-  skip(){if(!W||now()-W.t0<600)return false;skipWait();return true},
+  // أي ضغط من أي لاعب يُظهر النتيجة فورًا للجميع (ولا قيد بعد ظهورها). خلال الـ7 ثوانٍ يمكن القيد.
+  skip(){if(!W||G.qa||now()-W.t0<600)return false;skipWait();return true},
   // الأفعال البشرية
   bid(seat,k,s){
    if(!live(seat)||G.ph!='b'||G.turn!=seat)return false;
@@ -437,7 +474,8 @@ function create(env){
    bid(seat,k,s);return true},
   answerBefore(seat,y){if(!live(seat)||G.ph!='q'||G.cs!=seat)return false;ansQ(seat,!!y);return true},
   answerFlip(seat,y){if(!live(seat)||G.ph!='f'||G.cs!=seat)return false;ansF(seat,!!y);return true},
-  answerDouble(seat,y,cl){if(!live(seat)||G.ph!='d'||G.cs!=seat)return false;ansD(seat,y?1:0,cl);return true},
+  answerSun(seat,y){return live(seat)?vSun(seat,!!y):false},
+  answerDouble(seat,y,cl){if(!live(seat))return false;if(G.ph=='v')return vDbl(seat,!!y,cl);if(G.ph!='d'||G.cs!=seat)return false;ansD(seat,y?1:0,cl);return true},
   play(seat,id,ak){
    if(!live(seat)||G.ph!='p'||G.turn!=seat||G.t.length>3||needLay(seat))return false;
    const c=G.h[seat].find(x=>idc(x)==id);if(!c)return false;
