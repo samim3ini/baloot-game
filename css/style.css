@@ -485,3 +485,10 @@ body.onl #emb{display:none}
 .wnote{margin:0 0 8px;color:#c9d0da;font-size:14px;line-height:1.7}
 #rpb button.go{background:var(--gold);color:#2a1d05;font-weight:800;font-size:16px;padding:10px 20px}
 #rpb button:disabled{opacity:.45}
+
+/* إنزال المشروع: اختيار الأوراق */
+#pmenu .lyc{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin:4px 0 8px}
+#pmenu .lyk{cursor:pointer;border-radius:9px;transition:transform .1s}
+#pmenu .lyk .cd{--cw:min(11vw,50px)}
+#pmenu .lyk.on{transform:translateY(-8px)}
+#pmenu .lyk.on .cd{box-shadow:0 0 0 3px #f2d21b,0 0 14px #f2d21b}

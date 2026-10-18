@@ -19,8 +19,7 @@ function onEvent(ev){
   case 'fresh':FRESH=1;break;
   case 'say':say(ev.i,ev.m);break;
   case 'splash':splash(ev.text,ev.lv,ev.sub);break;
-  case 'pop':pop(ev.i,ev.n);break;
-  case 'proj':showProj(ev.i);break;
+  case 'proj':showProj(ev);break;
   case 'trickWin':{const el=document.querySelector('.pc'+R(ev.w));if(el)el.classList.add('wn');break}
   case 'sweep':$('mid').className='sw'+R((ev.w+2)%4);break;
   case 'sawa':say(-1,'سوا صحيحة: '+(ev.seat%2==ME%2?'أخذتم':'أخذوا')+' باقي الأكلات');break;
@@ -32,6 +31,8 @@ function onEvent(ev){
 function renderAct(cak){
  const p=ENG.pending(ME),ph=G.ph;
  if(SPEC){const h='<button onclick="specTurn()">↻ زاوية المشاهدة</button>';if(UI.act!==h){UI.act=h;$('act').innerHTML=h}return}
+ if(p&&p.k=='lay'){layUI(p);UI.layOn=1;if(UI.act!==''){UI.act='';$('act').innerHTML=''}return} // إنزال المشروع: اختيار الأوراق
+ if(UI.layOn){UI.layOn=0;UI.ls=[];$('pmenu').style.display='none'}
  if(ph=='p'&&UI.pm)return; // قائمة المشاريع مفتوحة: لا نمسّ الأزرار
  let h='';
  if(G.qa)h='';
@@ -44,7 +45,7 @@ function renderAct(cak){
  else if(ph=='f'&&p)h=`<button class="bn" onclick="aF(1)">صن ☀</button><button class="bp" onclick="aF(0)">بس</button>`;
  else if(ph=='d'&&p){const n=p.n;h=(p.two?`<button class="bh" onclick="aD(1,0)">${n} مفتوح</button><button class="ba" onclick="aD(1,1)">${n} مقفل</button>`:`<button class="bh" onclick="aD(1,0)">${n}</button>`)+`<button class="bp" onclick="aD(0)">بس</button>`}
  else if(ph=='p'){
-  const dcl=G.n==0&&G.po[ME].length&&!G.dc[ME]&&!G.fd[ME];
+  const dcl=G.n==0&&!G.dc[ME]&&!G.fd[ME]; // الزر ثابت دائمًا قبل لعب أول ورقة (فلا يكشف أن معك مشروعًا)
   h=`<button id="qb" onclick="qaidUI()">قيد</button>`+(dcl?`<button id="pjb" class="on" onclick="projMenu()">المشاريع</button>`:'')+(hk()?`<button class="${UI.ak?'on':''}" ${cak?'':'disabled'} onclick="tkToggle()">إكة</button>`:'')+`<button id="bs" onclick="sawa()" ${G.turn==ME&&!G.t.length&&G.n>=1?'':'disabled'}>سوا</button>`}
  if(UI.act!==h){UI.act=h;$('act').innerHTML=h}}
 
@@ -55,7 +56,6 @@ function aF(y){ENG.answerFlip(ME,y)}
 function aD(y,cl){ENG.answerDouble(ME,y,cl)}
 function tkToggle(){UI.ak=!UI.ak;render()}
 function hp(c){
- if(UI.ak&&(isT(c)||c.r==7)){say(-1,isT(c)?'لا تصح الإكة على ورقة الحكم':'لا حاجة للإكة على الآس');return}
  if(UI.pm)commitP();
  const a=UI.ak;UI.ak=0;ENG.play(ME,c.s*8+c.r,!!a)}
 function sawa(){ENG.sawa(ME)}
@@ -68,9 +68,9 @@ function ovClick(e){if(RESULT&&G.ph=='e'&&!(e.target.closest&&e.target.closest('
 function projMenu(){UI.pm=1;UI.sel=[0,0,0,0];showPM()}
 function showPM(){
  const tx=UI.sel.map((n,j)=>n?PJ[PV[j]]+(n>1?' ×'+n:''):'').filter(Boolean).join(' + ');
- $('pmenu').innerHTML=`<div class="pt">${tx||'اختر مشروعك'}</div><div class="pr">${PV.map((v,j)=>`<button class="${UI.sel[j]?'on':''}" ${v==400&&hk()?'disabled':''} onclick="selP(${j})">${PJ[v]}${UI.sel[j]?' <b>×'+UI.sel[j]+'</b>':''}</button>`).join('')}</div><div class="ph">${tx?'المس أي مكان لإعلانه':'اضغط المشروع ثم المس أي مكان'}</div>`;
+ $('pmenu').innerHTML=`<div class="pt">${tx||'اختر مشروعك'}</div><div class="pr">${PV.map((v,j)=>`<button class="${UI.sel[j]?'on':''}" onclick="selP(${j})">${PJ[v]}${UI.sel[j]?' <b>×'+UI.sel[j]+'</b>':''}</button>`).join('')}</div><div class="ph">${tx?'المس أي مكان لإعلانه':'اضغط المشروع ثم المس أي مكان'}</div>`;
  $('pmenu').style.display='block'}
-function selP(j){const mx=j==0?2:1;UI.sel[j]=UI.sel[j]>=mx?0:UI.sel[j]+1;showPM()}
+function selP(j){const mx=j==3?1:2;UI.sel[j]=UI.sel[j]>=mx?0:UI.sel[j]+1;showPM()}
 function closePM(){UI.pm=0;$('pmenu').style.display='none';render()}
 function commitP(){
  const want=[];UI.sel.forEach((n,j)=>{for(let k=0;k<n;k++)want.push(PV[j])});
@@ -78,11 +78,22 @@ function commitP(){
  if(!want.length||!ENG.project(ME,want))render()}
 document.addEventListener('click',e=>{if(!UI.pm)return;const path=e.composedPath?e.composedPath():[];if(!path.some(n=>n.id=='pmenu'||n.id=='pjb'))commitP()});
 
+// إنزال المشروع (الأكلة الثانية للفريق الأقوى): تختار الأوراق التي تنزلها بنفسك، وقد تغش فتنزل أوراقًا لا تطابق إعلانك.
+const layP=()=>{const p=ENG.pending(ME);return !!p&&p.k=='lay'};
+function layUI(p){
+ const sel=UI.ls||(UI.ls=[]),pool=[...G.h[ME],...G.pl[ME]].sort((a,b)=>a.s-b.s||b.r-a.r);
+ $('pmenu').innerHTML=`<div class="pt">أنزل مشروعك: ${p.want.map(v=>PJ[v]).join(' + ')}</div><div class="lyc">${pool.map(c=>{const id=c.s*8+c.r;return `<div class="lyk ${sel.includes(id)?'on':''}" onclick="layPick(${id})">${card(c)}</div>`}).join('')}</div><div class="pr"><button class="bh" onclick="layGo()">تنزيل ${sel.length?'('+sel.length+')':''}</button><button class="bp" onclick="layNo()">لا أنزل</button></div><div class="ph">اختر الأوراق التي تنزلها ثم اضغط تنزيل</div>`;
+ $('pmenu').style.display='block'}
+function layPick(id){const s=UI.ls||(UI.ls=[]),k=s.indexOf(id);if(k>=0)s.splice(k,1);else s.push(id);render()}
+function layGo(){const ids=(UI.ls||[]).slice();if(!ids.length)return;UI.ls=[];ENG.lay(ME,ids)}
+function layNo(){UI.ls=[];ENG.lay(ME,[])}
+
 // ===== نتيجة الجولة =====
 const cardTx=id=>RK[id%8]+SU[id>>3];
 const tn=t=>t==ME%2?'لنا':'لهم';
 function qMsg(type,p,pid,rid){
  const who=p==ME?'عليك':'على '+NM[p];
+ if(type=='proj')return `قيد مشروع كاذب ${who}: أنزل أوراقًا لا تطابق ما أعلنه`;
  if(type=='sawa')return 'قيد سوا خاطئ: لم يُعلن أحد سوا';
  return type=='ace'?`قيد ${VT[type]} ${who}: أعلن إكة بورقة ${cardTx(pid)} وهي ليست الأعلى`:`قيد ${VT[type]} ${who}: لعب ${cardTx(pid)} وكان مفروضًا يلعب ${cardTx(rid)}`}
 function qaidText(i){

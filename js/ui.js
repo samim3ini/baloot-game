@@ -4,7 +4,7 @@ const BIDW=/^(بس|ولا|صن|حكم|أشكل|قبلك|دبل|ثري|فور|ق�
 function say(i,m){
  if(i>=0&&BIDW.test(m))return;
  const e=$('msg');e.textContent=(i>=0?NM[i]+': ':'')+m;e.classList.add('show');clearTimeout(mt);mt=setTimeout(()=>e.classList.remove('show'),1800)}
-const SKIN={},ck=c=>RK[c.r]+SUL[c.s];let UP={};
+const SKIN={},ck=c=>RK[c.r]+SUL[c.s],IMGS=[];let UP={};
 function card(c,k='',st=''){if(!c)return `<div class="cd bkcard ${k}" style="${st}"></div>`;const r=c.r,s=SU[c.s],u=SKIN[ck(c)];
  if(u)return `<div class="cd sk ${k}" style="background-image:url('${u}');${st}"></div>`;
  const cr=`<i>${RK[r]}</i><b>${s}</b>`;
@@ -17,7 +17,7 @@ function applySkin(){
  if(G)render()}
 const idb=(m,v)=>new Promise(res=>{try{const q=indexedDB.open('baloot-skin',1);q.onupgradeneeded=()=>q.result.createObjectStore('f');q.onsuccess=()=>{const st=q.result.transaction('f',m=='get'?'readonly':'readwrite').objectStore('f'),r=m=='get'?st.get('skin'):m=='set'?st.put(v,'skin'):st.delete('skin');r.onsuccess=()=>res(r.result);r.onerror=()=>res()};q.onerror=()=>res()}catch(e){res()}});
 function loadSkin(){
- ALLK.forEach(k=>{const t=n=>{const im=new Image();im.onload=()=>{if(!UP[k]){SKIN[k]=im.src;applySkin()}};if(n<1)im.onerror=()=>t(n+1);im.src=CARD_DIR+(n?k.toLowerCase():k)+'.'+CARD_EXT};t(0)});
+ ALLK.forEach(k=>{const t=n=>{const im=new Image();IMGS.push(im);im.onload=()=>{if(!UP[k]){SKIN[k]=im.src;applySkin()}};if(n<1)im.onerror=()=>t(n+1);im.src=CARD_DIR+(n?k.toLowerCase():k)+'.'+CARD_EXT;if(im.decode)im.decode().catch(()=>{})};t(0)});
  idb('get').then(o=>{if(o){UP=o;Object.assign(SKIN,o);applySkin()}})}
 let OVP=null;
 function ovOpen(h){OVP=$('ov').style.display=='flex'?$('ovb').innerHTML:null;$('ovb').innerHTML=h;$('ov').style.display='flex'}
@@ -35,13 +35,11 @@ function setScore(id,v){const e=$(id);if(e.textContent==String(v))return;e.textC
 // أوراق السوا/نهاية الجولة: متناثرة قليلًا ومتقاربة (إزاحة ودوران ثابتان لكل ورقة حتى لا تتحرك عند إعادة الرسم)
 const jit=(c,n)=>{const x=Math.sin((c.s*8+c.r+1)*(n+3.7))*10000;return x-Math.floor(x)};
 function revealHtml(){return G.rev.map((h,i)=>h.length?`<div class="rv rv${R(i)}">${h.map(c=>card(c,'',`--rr:${((jit(c,1)-.5)*26).toFixed(1)}deg;--rx:${((jit(c,2)-.5)*10).toFixed(1)}px;--ry:${((jit(c,3)-.5)*12).toFixed(1)}px`)).join('')}</div>`:'').join('')}
-function showProj(i){
- const rem=G.pcd[i].flat().filter(c=>!G.pl[i].includes(c));if(!rem.length)return;
- const e=document.createElement('div');e.className='pjr p'+R(i);
- e.innerHTML='<span>'+pnames(i)+'</span><div class="row">'+rem.map(c=>card(c)).join('')+'</div>';
+function showProj(ev){
+ const e=document.createElement('div');e.className='pjr p'+R(ev.i);
+ e.innerHTML='<span>'+esc(ev.names)+'</span><div class="row">'+ev.cards.map(c=>card(c)).join('')+'</div>';
  $('stage').appendChild(e);setTimeout(()=>{if(e.remove)e.remove()},4500)}
 
-function pop(i,n){const e=document.createElement('div');e.className='pop p'+R(i);e.textContent='+'+n;$('stage').appendChild(e);setTimeout(()=>{if(e.remove)e.remove()},1400)}
 // كومة الأكلات الرابحة لمقعد i: أوراق أفقية متراكمة (حتى 8 طبقات) وعدد الأكلات فوقها
 function pileHtml(i){const n=G.pile[i];if(!n)return'';const L=Math.min(n,8);return `<div class="pile" style="--n:${L}">${Array.from({length:L},(_,k)=>`<u style="--k:${k}"></u>`).join('')}<b>${n}</b></div>`}
 const esc=t=>String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -49,21 +47,22 @@ const DLR='<div class="dlr" title="الموزع"><i></i><span>موزع</span></d
 function render(){
  const us=ME%2,them=1-us;setScore('s0',S[us]);setScore('s1',S[them]);$('streak').textContent=STREAK>=2?'🔥 '+STREAK+' جولات متتالية':'';
  $('hist').innerHTML=HIST.map(h=>`<tr><td>${h.n}</td><td>${h.mode}${h.m>1?' ×'+h.m:''}</td><td class="a">${h.p[us]}</td><td class="b">${h.p[them]}</td></tr>`).join('');{const hs=$('hsc');hs.scrollTop=hs.scrollHeight}
- {const tot=hk()?162:130,x=G.pt[us],y=G.pt[them];$('live').innerHTML=G.mode&&G.ph!='e'?`<div class="lb"><b class="a">${x}</b><div class="bar"><i class="a" style="width:${x/tot*100}%"></i><i class="b" style="width:${y/tot*100}%"></i><u></u></div><b class="b">${y}</b></div><small>أبناط الجولة من ${tot}</small>`:''}$('rn').textContent='الجولة '+RN;
+ $('live').innerHTML='';$('rn').textContent='الجولة '+RN;
  function bdg(i){if(!G.mode||G.buyer!=i)return'';return G.mode=='s'?(G.ash?'أشكل · صن':'صن'):`حكم <b class="${G.tr%2?'rd':''}">${SU[G.tr]}</b>`}
  $('info').innerHTML=(G.mode?(G.mode=='s'?'<span class="bg">صن</span>':`<span class="bg ${G.tr%2?'rd':''}">${SU[G.tr]}</span> حكم`)+'<br><small>المشتري: '+esc(NM[G.buyer])+(G.ash?' (أشكل)':'')+(G.m>1?' — '+DN[G.m-2]:'')+(G.coffee?' — قهوة':'')+(G.cl?' (مقفل)':'')+'</small>':'<small>المزايدة</small>');
  const act=G.ph!='e'&&G.t.length<4;
  for(let r=1;r<4;r++){const i=(ME+r)%4,e=$('p'+r),hd=G.h[i],n=hd.length,real=n&&hd[0];e.className='seat tm'+(r%2)+(act?(G.turn==i?' on':' dim'):'')+(G.mode&&G.buyer==i?' buyer':'');
   e.innerHTML=(real?`<div class="bk fc">${hd.map(c=>card(c)).join('')}</div>`:`<div class="bk">${Array.from({length:n},(_,k)=>`<u style="--r:${((k-(n-1)/2)*8).toFixed(1)}deg"></u>`).join('')}</div>`)+`<div class="av"></div><div class="pl"><b class="nm">${esc(NM[i])}</b></div>${i==G.dealer?DLR:''}${G.mode&&G.buyer==i?`<div class="by">${bdg(i)}</div>`:''}${G.tag[i]?`<div class="bb">${G.tag[i]}</div>`:''}${pileHtml(i)}`}
- const nw=G.t.length>(UI.rn||0);$('mid').className='';$('mid').innerHTML=(G.ph=='b'||G.ph=='f'||G.ph=='q'||G.fly!=null?`<div class="fl${G.fly!=null?' fly'+R(G.fly):''}">${card(G.fl)}</div>`:'')+G.t.map((x,k)=>card(x.c,'pc pc'+R(x.i)+(nw&&k==G.t.length-1?' pin':''))).join('')+(G.rev?revealHtml():'');UI.rn=G.t.length;
- const my=G.ph=='p'&&G.turn==ME&&G.t.length<4,n0=G.h[ME].length,cak=my&&hk()&&!G.t.length;if(!cak)UI.ak=0;
+ const nw=G.t.length>(UI.rn||0);$('mid').className='';const mh=(G.ph=='b'||G.ph=='f'||G.ph=='q'||G.fly!=null?`<div class="fl${G.fly!=null?' fly'+R(G.fly):''}">${card(G.fl)}</div>`:'')+G.t.map((x,k)=>card(x.c,'pc pc'+R(x.i)+(nw&&k==G.t.length-1?' pin':''))).join('')+(G.rev?revealHtml():'');{const mk=mh.replace(/ pin/g,'');if(UI.mk!==mk){UI.mk=mk;$('mid').innerHTML=mh}} // لا تُعاد الأوراق الملقاة إن لم تتغير (يمنع وميض الورقة البيضاء)
+ UI.rn=G.t.length;
+ const my=!SPEC&&G.ph=='p'&&G.turn==ME&&G.t.length<4&&!layP(),n0=G.h[ME].length,cak=my&&hk()&&!G.t.length;if(!cak)UI.ak=0;
  $('hand').innerHTML='';
  G.h[ME].forEach((c,k)=>{const d=document.createElement('div');d.innerHTML=card(c,(my?'ok':'')+(FRESH?' dlv':''));const e=d.firstChild;if(FRESH)e.style.animationDelay=(k*60)+'ms';
   e.style.setProperty('--r',((k-(n0-1)/2)*4)+'deg');e.style.setProperty('--y0',(Math.abs(k-(n0-1)/2)*3)+'px');
   if(my)e.onclick=()=>hp(c);$('hand').appendChild(e)});FRESH=0;
  document.querySelector('.me').className='me tm0'+(act?(G.turn==ME?' on':' dim'):'')+(G.mode&&G.buyer==ME?' buyer':'');document.querySelector('.me .nm').textContent=SPEC?'مشاهد · مقعد '+(ME+1):'أنت';
  $('dl0').style.display=G.dealer==ME?'':'none';$('pl0').innerHTML=pileHtml(ME);$('stage').classList.toggle('myturn',!!my);const bd=G.ph=='b'||G.ph=='f'||G.ph=='q';$('rdn').style.display=bd?'':'none';$('rdn').innerHTML=bd?`<span class="${G.rd==1?'on':''}">الدور الأول</span><span class="${G.rd==2?'on':''}">الدور الثاني</span>`:'';
- $('dblb').innerHTML=G.m>1||G.coffee?`<div class="r lv${G.coffee?5:G.m}"><b>${G.coffee?'☕':'×'+G.m}</b><span>${G.coffee?'قهوة':DN[G.m-2]+(hk()&&(G.m==2||G.m==4)?(G.cl?' مقفل':' مفتوح'):'')}</span></div>`:'';$('by0').innerHTML=bdg(ME);$('by0').style.display=G.mode&&G.buyer==ME?'':'none';
+ $('dblb').innerHTML=G.m>1||G.coffee?`<div class="r lv${G.coffee?5:G.m}"><b>${G.coffee?'☕':'×'+G.m}</b><span>${G.coffee?'قهوة':DN[G.m-2]+(hk()&&(G.m==2||G.m==4)?(G.cl?' مقفل':' مفتوح'):'')}</span></div>`:'';{const t0=G.ph=='p'&&G.tag[ME];$('by0').innerHTML=t0?esc(t0):bdg(ME);$('by0').style.display=t0||(G.mode&&G.buyer==ME)?'':'none'}
  $('trp').style.display=G.mode?'':'none';$('trp').innerHTML=G.mode?(G.mode=='s'?'<b class="sn">صن</b>':`<b class="${G.tr%2?'rd':''}">${SU[G.tr]}</b><small>حكم</small>`)+(G.ash?'<small>أشكل</small>':''):'';
  renderAct(cak);qaidSync()
 }
@@ -76,15 +75,6 @@ function botReact(our,info){
  const e=(i,x,ms)=>setTimeout(()=>emote(i,x),ms);
  if(info&&info.k=='kaboot'){e(1,'🤯',500);e(3,'🤯',900);return}
  if(our>0){e(1+2*(Math.random()<.5?1:0),'😭',700);e(2,'👏',1100)}else if(our<0){e(1+2*(Math.random()<.5?1:0),'😎',700);e(2,'😅',1100)}}
-function showLast(){
- if(!G||!G.last||!G.last.length)return;
- const e=document.createElement('div');e.className='pjr lastt';
- e.innerHTML='<span>آخر أكلة — فاز بها '+NM[G.lw]+'</span><div class="row">'+G.last.map(x=>`<div class="lc${x.i==G.lw?' w':''}">${card(x.c)}<small>${NM[x.i]}</small></div>`).join('')+'</div>';
- $('stage').appendChild(e);setTimeout(()=>{if(e.remove)e.remove()},3500)}
-function showTracker(){
- if(!G)return;const pl=G.pl.flat();
- const rows=[0,1,2,3].map(s=>`<div class="trr ${s%2?'rd':''}"><b>${SU[s]}</b>${[7,3,6,5,4,2,1,0].map(r=>`<span class="${pl.some(c=>c.s==s&&c.r==r)?'x':G.h[0].some(c=>c.s==s&&c.r==r)?'m':''}">${RK[r]}</span>`).join('')}</div>`).join('');
- ovOpen(`<h2>الأوراق الخارجة</h2><div class="trk">${rows}</div><p class="lg2"><span class="x">خرجت</span> <span class="m">في يدك</span> <span>لم تخرج</span></p><button onclick="ovClose()">إغلاق</button>`)}
 const SPNAME=['بطيء','عادي','سريع'],SPICO=['🐢','🐇','⚡'];
 function cycSpeed(){SPD=(SPD+1)%3;$('spi').textContent=SPICO[SPD];$('spt').textContent=SPNAME[SPD]}
 
@@ -93,14 +83,14 @@ function cycSpeed(){SPD=(SPD+1)%3;$('spi').textContent=SPICO[SPD];$('spt').textC
 // كل نقرة ترسل اختيارها للمحرك (qaidSet) ثم تُعاد الرسم من حالته. اللعب متوقف خلف النافذة عند الجميع.
 // نافذة المقيِّد لا تُغلق حتى يُحدَّد القيد ويُؤكَّد، فاحذر من القيد الخاطئ: ينقلب عليك.
 const qId=c=>c.s*8+c.r,qCard=id=>({s:id>>3,r:id&7}),qOwn=id=>[0,1,2,3].find(j=>G.pl[j].some(c=>qId(c)==id));
-const qNeedR=t=>!!t&&t!='ace'&&t!='sawa';
-const qReady=q=>q.t=='sawa'||(!!q.t&&q.pc>=0&&(!qNeedR(q.t)||q.rq>=0));
-const qMine=q=>!!q&&!q.auto&&q.by==ME;
+const qNeedR=t=>!!t&&t!='ace'&&t!='sawa'&&t!='proj';
+const qReady=q=>q.t=='sawa'||q.t=='proj'||(!!q.t&&q.pc>=0&&(!qNeedR(q.t)||q.rq>=0));
+const qMine=q=>!SPEC&&!!q&&!q.auto&&q.by==ME;
 function qDots(i){const k=['b','r','t','l'][(i-ME+4)%4];return `<span class="qdots">${['t','r','b','l'].map(x=>`<i class="${x==k?'y':''}"></i>`).join('')}</span>`}
 function qSlot(c,cls,fn,lbl){return `<div class="qc ${cls}"${fn?` onclick="${fn}"`:''} style="--rr:${((jit(c,1)-.5)*7).toFixed(1)}deg">${card(c)}${lbl?`<small>${lbl}</small>`:''}</div>`}
 // هل تُنقر هذه الورقة الآن (وضع المقيِّد)؟ الورقة المحددة تُنقر لإلغائها. اليد المتبقية لا تُنقر إلا لاختيار «الورقة المفروضة» من يد المتهم.
 function qCan(id,o,hand){
- const q=G.qa;if(!qMine(q)||q.t=='sawa'||o%2==ME%2)return false;
+ const q=G.qa;if(!qMine(q)||q.t=='sawa'||q.t=='proj'||o%2==ME%2)return false;
  if(id==q.pc||id==q.rq)return true;
  if(hand)return q.pc>=0&&qNeedR(q.t)&&o==qOwn(q.pc);
  return true}
@@ -122,19 +112,19 @@ function qPick(id,o,hand){
  ENG.qaidSet(ME,{pc,rq})}
 function qType(t){
  const q=G.qa;if(!qMine(q))return;
- ENG.qaidSet(ME,q.t==t?{t:'',rq:-1}:t=='sawa'?{t,rq:-1,pc:-1}:{t,rq:-1})}
+ ENG.qaidSet(ME,q.t==t?{t:'',rq:-1}:t=='sawa'||t=='proj'?{t,rq:-1,pc:-1}:{t,rq:-1})}
 function qaidDlg(){
  const q=G.qa,mine=qMine(q),V=!mine,old=document.querySelector('#qvb .qbody'),sc=old?old.scrollTop:0,nr=qNeedR(q.t),ready=qReady(q);
- const types=['cut',...(hk()&&G.cl?['open']:[]),...(hk()?['nobig','nodq','ace']:[]),'sawa'];
- const ins=q.pc<0&&q.t!='sawa'?'اختر الورقة التي <b class="qr">تم الغش بها</b>':!q.t?'اختر <b class="qy">نوع القيد</b>':(nr&&q.rq<0)?'اختر الورقة التي <b class="qg">كان يجب لعبها</b>':'اضغط «قيدها» للتأكيد';
+ const types=['cut',...(hk()&&G.cl?['open']:[]),...(hk()?['nobig','nodq','ace']:[]),'sawa','proj'];
+ const ins=q.pc<0&&q.t!='sawa'&&q.t!='proj'?'اختر الورقة التي <b class="qr">تم الغش بها</b>':!q.t?'اختر <b class="qy">نوع القيد</b>':(nr&&q.rq<0)?'اختر الورقة التي <b class="qg">كان يجب لعبها</b>':'اضغط «قيدها» للتأكيد';
  const head=V?`<div class="qh"><div class="qins">نوع القيد : <b class="qy">${q.t?VT[q.t]:'...'}</b></div></div>`
   :`<div class="qh"><div class="qhr"><div class="qtab">نوع القيد</div><div class="qins">${ins}</div></div><div class="qty">${types.map(t=>`<button class="${q.t==t?'on':''}" onclick="qType('${t}')">${VT[t]}</button>`).join('')}</div></div>`;
- const pair=V?`<div class="qpair">${q.pc>=0?`<div class="qps">${qSlot(qCard(q.pc),'bad')}<small>الورقة التي غُشّ بها</small></div>`:''}${nr&&q.rq>=0?`<div class="qps">${qSlot(qCard(q.rq),'ok')}<small>كان يجب لعبها</small></div>`:''}${q.t=='sawa'?`<p class="qnote">${q.p==ME?'أعلنتَ سوا وبقيت أكلات لا تكسبها':esc(NM[q.p])+' أعلن سوا وبقيت أكلات لا يكسبها'}</p>`:''}</div>`:'';
+ const pair=V?`<div class="qpair">${q.pc>=0?`<div class="qps">${qSlot(qCard(q.pc),'bad')}<small>الورقة التي غُشّ بها</small></div>`:''}${nr&&q.rq>=0?`<div class="qps">${qSlot(qCard(q.rq),'ok')}<small>كان يجب لعبها</small></div>`:''}${q.t=='proj'?'<p class="qnote">قيد على مشروع كاذب</p>':''}${q.t=='sawa'?`<p class="qnote">${q.p==ME?'أعلنتَ سوا وبقيت أكلات لا تكسبها':esc(NM[q.p])+' أعلن سوا وبقيت أكلات لا يكسبها'}</p>`:''}</div>`:'';
  const wn=t=>t.reduce((a,b)=>val(b.c,t[0].c.s)>val(a.c,t[0].c.s)?b:a).i,tr=[...G.tl,...(G.t.length?[G.t]:[])];
  const trh=tr.length?tr.map((t,k)=>{const w=t.length==4?wn(t):-1;
-  return `<div class="qt"><h3>الأكلة ${k+1}</h3><div class="qtb">${t.map(x=>{const id=qId(x.c);return qSlot(x.c,qSt(id,x.i,0),qCan(id,x.i,0)?`qPick(${id},${x.i},0)`:'',(x.i==w?'★ ':'')+esc(NM[x.i]))}).join('')}</div></div>`}).join(''):'<p class="qemp">لم تُلعب أي أكلة بعد</p>';
- const team=q.auto&&q.p>=0?[q.p,(q.p+2)%4]:[(q.by+1)%4,(q.by+3)%4];
- const hh=team.some(j=>G.h[j].length)?`<div class="qhands">${team.map(j=>`<div class="qhb"><div class="qhh"><span>${esc(NM[j])}</span>${qDots(j)}</div><div class="qhg">${G.h[j].length?G.h[j].map(c=>{const id=qId(c);return qSlot(c,qSt(id,j,1),qCan(id,j,1)?`qPick(${id},${j},1)`:'')}).join(''):'<p class="qemp">لا أوراق</p>'}</div></div>`).join('')}</div>`:'';
+  return `<div class="qt"><h3>الأكلة ${k+1}</h3><div class="qtb">${t.map(x=>{const id=qId(x.c);return qSlot(x.c,qSt(id,x.i,0),qCan(id,x.i,0)?`qPick(${id},${x.i},0)`:'',x.i==w?'★':'')}).join('')}</div></div>`}).join(''):'<p class="qemp">لم تُلعب أي أكلة بعد</p>';
+ const team=[0,1,2,3].map(r=>(ME+r)%4).filter(j=>G.h[j].length&&G.h[j][0]); // أيدي الجميع (الخصم والشريك) ما دام الخادم كشفها لك
+ const hh=team.length?`<div class="qhands">${team.map(j=>`<div class="qhb"><div class="qhh"><span>${esc(NM[j])}</span>${qDots(j)}</div><div class="qhg">${G.h[j].length?G.h[j].map(c=>{const id=qId(c);return qSlot(c,qSt(id,j,1),qCan(id,j,1)?`qPick(${id},${j},1)`:'')}).join(''):'<p class="qemp">لا أوراق</p>'}</div></div>`).join('')}</div>`:'';
  const ft=mine?`<div class="qf"><div class="qwho">المقيد: <b>${esc(NM[q.by])}</b></div><button class="${ready?'go':''}" ${ready?'':'disabled'} onclick="qConfirm()">قيدها</button></div>`
   :`<div class="qf"><div class="qwho">المقيد: <b>${esc(NM[q.by])}</b></div>${q.auto?'<button class="go" onclick="qCont()">متابعة</button>':'<div class="qwho">أنت مشاهد</div>'}</div>`;
  $('qvb').innerHTML=head+`<div class="qbody">${pair}<p class="qhint">${V?'':'اضغط الورقة المحددة مرة ثانية لإلغائها · '}★ أخذ الأكلة</p>${trh}${hh}</div>`+ft;
