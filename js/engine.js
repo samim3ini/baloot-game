@@ -72,10 +72,44 @@ function create(env){
    if(tr.length&&(w.i%2!=i%2||(w.i==G.t[0].i&&w.c.r!=7&&!G.ann))){const mx=Math.max(-1,...G.t.filter(t=>t.c.s==G.tr).map(t=>ST[t.c.r])),up=tr.filter(c=>ST[c.r]>mx);return up.length?up:tr}}
   return h}
  function isMaster(c){const pl=G.pl.flat();for(let r=0;r<8;r++)if(SN[r]>SN[c.r]&&!pl.some(x=>x.s==c.s&&x.r==r))return false;return true}
+ // السوا الصحيح: يأكل اللاعب كل الأكلات المتبقية بنفسه مهما لعب الباقون (الخصمان وشريكه يُعدّون خصومًا احتياطًا) بحسب قواعد اللعب.
+ // بحث كامل على الأكلات المتبقية: يقود اللاعب بما يشاء، ويختار الباقون أسوأ ما يمكن لهم من أوراق نظامية.
+ // فورقته الأضعف قد تكون هي الأعلى بعد أن تخرج أوراق اللون الأقوى منها (مثل: 10 وولد وثمانية وسبعة والخصم معه بنت واحدة فقط).
  function sawaOK(seat){
-  const pl=G.pl.flat(),me=G.h[seat],o=[];
-  for(let s=0;s<4;s++)for(let r=0;r<8;r++)if(![...pl,...me].some(x=>x.s==s&&x.r==r))o.push({s,r});
-  return me.every(c=>!o.some(x=>x.s==c.s&&str(x)>str(c))&&!(hk()&&!isT(c)&&o.some(x=>x.s==G.tr)))}
+  const hs0=G.h.map(h=>h.slice()),svT=G.t,svA=G.ann,memo=new Map();let nodes=0,over=false;
+  const bit=c=>1<<(c.s*8+c.r),keyOf=hs=>hs.map(h=>h.reduce((m,c)=>m|bit(c),0)>>>0).join('.');
+  const rm=(hs,p,c)=>hs.map((h,j)=>j==p?h.filter(x=>x!==c):h);
+  const legalSim=(h,p,t)=>{G.t=t;G.ann=1;try{return legal(h,p)}finally{G.t=svT;G.ann=svA}};
+  // اختصار: ورقتان متتاليتان في القوة لا تفصل بينهما ورقة عند غيرك ولا على الطاولة متكافئتان
+  const reduceOpts=(opts,hs,p,t)=>{
+   const foreign=[];hs.forEach((h,j)=>{if(j!=p)foreign.push(...h)});t.forEach(x=>foreign.push(x.c));
+   const out=[],by={};opts.forEach(c=>(by[c.s]=by[c.s]||[]).push(c));
+   for(const k in by){const a=by[k].sort((x,y)=>str(x)-str(y));let prev=null;
+    for(const c of a){if(prev&&!foreign.some(x=>x.s==c.s&&str(x)>str(prev)&&str(x)<str(c))){prev=c;continue}out.push(c);prev=c}}
+   return out};
+  const claim=hs=>{
+   if(!hs[seat].length)return true;
+   const k=keyOf(hs);if(memo.has(k))return memo.get(k);
+   let ok=false;
+   for(const c of reduceOpts(legalSim(hs[seat],seat,[]),hs,seat,[]).sort((x,y)=>str(y)-str(x))){
+    if(trick(rm(hs,seat,c),[{i:seat,c}])){ok=true;break}
+    if(over)break}
+   memo.set(k,ok);return ok};
+  const trick=(hs,t)=>{
+   if(++nodes>400000){over=true;return false}
+   if(t.length==4){const L=t[0].c.s,w=t.reduce((a,b)=>val(b.c,L)>val(a.c,L)?b:a);return w.i==seat&&claim(hs)}
+   const p=(seat+t.length)%4;
+   const opts=reduceOpts(legalSim(hs[p],p,t),hs,p,t).sort((x,y)=>str(y)-str(x)); // الأقوى أولًا: أسرع في كشف الفشل
+   for(const c of opts){if(!trick(rm(hs,p,c),[...t,{i:p,c}]))return false;if(over)return false}
+   return true};
+  try{
+   const ok=claim(hs0);
+   if(!over)return ok;
+   // تجاوز حد البحث (نادر جدًا): نرجع إلى الفحص المتحفظ القديم
+   const pl=G.pl.flat(),me=G.h[seat],o=[];
+   for(let s=0;s<4;s++)for(let r=0;r<8;r++)if(![...pl,...me].some(x=>x.s==s&&x.r==r))o.push({s,r});
+   return me.every(c=>!o.some(x=>str(x)>str(c))&&!(hk()&&!isT(c)&&o.some(x=>x.s==G.tr)))
+  }finally{G.t=svT;G.ann=svA}}
  function rp(a){if(hk())return a%10==5?Math.floor(a/10):Math.round(a/10);return a%10==5?a/5:Math.round(a/10)*2}
  function pjP(i){return G.pv[i].reduce((a,v)=>a+(hk()?v/10:v==400?40:v/5),0)}
  const pnames=i=>G.pv[i].map(v=>PJ[v]).join(' + ');
@@ -508,7 +542,7 @@ function create(env){
   stop(){RT++;paused=0;PQ=[];W=null;QK=null;if(G)G.sq++},
   // مساعدات للواجهة
   hk,isT,val,pts,legal,pnames,sawaOK,
-  _t:{endRound,violationOf,projOptions,isMaster}  // للاختبارات فقط
+  _t:{endRound,violationOf,projOptions,isMaster,sawaOK}  // للاختبارات فقط
  }
 }
 

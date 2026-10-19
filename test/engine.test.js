@@ -324,4 +324,30 @@ function checkRound(E,label){
  assert(E.G.ph=='d'&&E.G.dealt==1||E.G.ph=='v');
  console.log('12) سباق التدبيل وقلب الصن ✓');
 }
+
+// ---------- 13) السوا الصحيح: فحص كامل للأكلات المتبقية (لا يشترط أن تكون كل أوراقك الأعلى) ----------
+{
+ const r=rig({seed:5});const {E}=r;E.newGame();const G=E.G,C=(s,r)=>({s,r});
+ const setup=(mode,tr,hands)=>{G.mode=mode;G.tr=tr;G.cl=0;G.t=[];G.ann=0;G.h=hands;G.ph='p'};
+ const H=1,Sp=0,D=3,Cl=2; // الشريا=القلب(1)
+ // حالتك: 10 وولد و8 و7 من لون واحد، وعند الخصم بنت واحدة منه: السوا صحيح (العشرة تأكل البنت ثم الباقي أعلى)
+ setup('s',-1,[[C(H,3),C(H,4),C(H,1),C(H,0)],[C(H,5),C(Sp,0),C(Sp,1),C(Sp,2)],[C(D,0),C(D,1),C(D,2),C(D,3)],[C(Cl,0),C(Cl,1),C(Cl,2),C(Cl,4)]]);
+ assert.strictEqual(E._t.sawaOK(0),true,'بنت واحدة عند الخصم والعشرة تأكلها: سوا صحيح');
+ // ورقتان عند الخصم (شايب وبنت): العشرة تأكل واحدة والثانية تأكل الولد: خاطئ
+ setup('s',-1,[[C(H,3),C(H,4),C(H,1),C(H,0)],[C(H,6),C(H,5),C(Sp,0),C(Sp,1)],[C(D,0),C(D,1),C(D,2),C(D,3)],[C(Cl,0),C(Cl,1),C(Cl,2),C(Cl,4)]]);
+ assert.strictEqual(E._t.sawaOK(0),false,'ورقتان عند الخصم وليس معي إلا واحدة أقوى منهما: سوا خاطئ');
+ // معه ورقتان أقوى منهما (آس وعشرة) فيأكل الاثنتين: صحيح
+ setup('s',-1,[[C(H,7),C(H,3),C(H,4),C(H,1)],[C(H,6),C(H,5),C(Sp,0),C(Sp,1)],[C(D,0),C(D,1),C(D,2),C(D,3)],[C(Cl,0),C(Cl,1),C(Cl,2),C(Cl,4)]]);
+ assert.strictEqual(E._t.sawaOK(0),true,'آس وعشرة تأكلان الشايب والبنت: صحيح');
+ // الحكم: لون عادي يقطعه خصم معه حكم وليس معه من اللون: خاطئ
+ setup('h',Sp,[[C(H,7),C(H,3)],[C(Sp,0),C(Sp,1)],[C(D,0),C(D,1)],[C(Cl,0),C(Cl,1)]]);
+ assert.strictEqual(E._t.sawaOK(0),false,'خصم يقطع بالحكم: خاطئ');
+ // الحكم: كله حكم وأعلى ما بقي: صحيح
+ setup('h',Sp,[[C(Sp,4),C(Sp,2)],[C(Sp,0),C(D,1)],[C(D,0),C(D,2)],[C(Cl,0),C(Cl,1)]]);
+ assert.strictEqual(E._t.sawaOK(0),true,'الولد والتسعة بالحكم: صحيح');
+ // السرعة: جولة كاملة 7 أكلات
+ const t0=Date.now();setup('s',-1,[[C(H,7),C(H,3),C(H,6),C(Sp,7),C(Sp,3),C(D,7),C(D,3)],[C(H,5),C(H,4),C(H,2),C(Sp,6),C(Sp,5),C(D,6),C(D,5)],[C(H,1),C(H,0),C(Sp,4),C(Sp,2),C(D,4),C(D,2),C(Cl,7)],[C(Sp,1),C(Sp,0),C(D,1),C(D,0),C(Cl,3),C(Cl,6),C(Cl,5)]]);
+ E._t.sawaOK(0);assert(Date.now()-t0<3000,'الفحص بطيء: '+(Date.now()-t0)+'ms');
+ console.log('13) السوا الصحيح (فحص كامل) ✓');
+}
 console.log('\nكل اختبارات المحرك نجحت');
