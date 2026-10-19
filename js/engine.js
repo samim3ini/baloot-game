@@ -139,13 +139,16 @@ function create(env){
 
  // ===== المزايدة =====
  // G.cs: المقعد الذي ينتظره المحرك الآن (-1 لا أحد). botTurn يجدول قرار البوت إن كان صاحب الدور بوتًا.
+ // التكويش: من كانت أوراقه الخمس الأولى كلها 7 أو 8 أو 9 (بلا صورة ولا إكة ولا عشرة، ولو عشرة واحدة تمنعه) له رمي الورق وإعادة التوزيع قبل الشراء
+ const kawOK=s=>!!G&&G.ph=='b'&&G.h[s].length==5&&G.h[s].every(c=>c.r<=2);
+ function kawGo(s){G.sq++;say(s,'كوش');splash('كوش!',2,'إعادة التوزيع');G.ph='r';G.cs=-1;changed();after(deal,2400)}
  function botTurn(){
   if(!G||paused||G.qa)return;if(G.ph=='v')return vSched();const s=G.cs;if(s<0||humans[s])return;
   cue(()=>botDecide(s),G.ph=='p'?PMS.bot:1500)}
  // قرار البوت للمرحلة الحالية (للمقعد s)
  function botDecide(s){
   const ph=G.ph,sn=()=>G.h[s].reduce((a,c)=>a+(c.r==7?3:c.r==3?1:0),0);
-  if(ph=='b')botBid(s);
+  if(ph=='b'){if(kawOK(s))kawGo(s);else botBid(s)}
   else if(ph=='q')ansQ(s,sn()>=5);
   else if(ph=='f')ansF(s,sn()>=7);
   else if(ph=='d'){const h=G.h[s],st=G.dst,base=hk()?hs(h,G.tr)/12:sn()/10;ansD(s,rnd()<base*[.9,.5,.3,.2][st]?1:0)}
@@ -508,6 +511,7 @@ function create(env){
    bid(seat,k,s);return true},
   answerBefore(seat,y){if(!live(seat)||G.ph!='q'||G.cs!=seat)return false;ansQ(seat,!!y);return true},
   answerFlip(seat,y){if(!live(seat)||G.ph!='f'||G.cs!=seat)return false;ansF(seat,!!y);return true},
+  kawsh(seat){if(!live(seat)||!kawOK(seat))return false;kawGo(seat);return true},
   answerSun(seat,y){return live(seat)?vSun(seat,!!y):false},
   answerDouble(seat,y,cl){if(!live(seat))return false;if(G.ph=='v')return vDbl(seat,!!y,cl);if(G.ph!='d'||G.cs!=seat)return false;ansD(seat,y?1:0,cl);return true},
   play(seat,id,ak){

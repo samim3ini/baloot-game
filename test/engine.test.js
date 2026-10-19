@@ -350,4 +350,18 @@ function checkRound(E,label){
  E._t.sawaOK(0);assert(Date.now()-t0<3000,'الفحص بطيء: '+(Date.now()-t0)+'ms');
  console.log('13) السوا الصحيح (فحص كامل) ✓');
 }
+
+// ---------- 14) التكويش: خمس أوراق كلها 7 و8 و9 فقط ----------
+{
+ const r=rig({seed:9});const E=r.E;E.setHuman(0,true);E.newGame();const G=E.G,C=(s,r)=>({s,r});
+ G.ph='b';
+ G.h[0]=[C(0,0),C(1,1),C(2,2),C(3,3),C(0,1)];assert.strictEqual(E.kawsh(0),false,'عشرة واحدة تمنع التكويش');
+ G.h[0]=[C(0,0),C(1,1),C(2,2),C(3,4),C(0,1)];assert.strictEqual(E.kawsh(0),false,'الولد (صورة) يمنع التكويش');
+ G.h[0]=[C(0,0),C(1,1),C(2,2),C(3,7),C(0,1)];assert.strictEqual(E.kawsh(0),false,'الآس يمنع التكويش');
+ G.h[0]=[C(0,0),C(1,1),C(2,2),C(3,0),C(0,1)];const d=G.dealer;
+ assert.strictEqual(E.kawsh(1),false,'ليس بشريًا');
+ assert.strictEqual(E.kawsh(0),true);assert.strictEqual(G.ph,'r');r.adv(3000);
+ assert.strictEqual(E.G.ph,'b','أُعيد التوزيع');assert.strictEqual(E.G.dealer,d,'الموزع نفسه');
+ console.log('14) التكويش ✓');
+}
 console.log('\nكل اختبارات المحرك نجحت');

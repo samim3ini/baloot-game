@@ -49,6 +49,7 @@ function renderAct(cak){
  else if(ph=='p'){
   const dcl=G.n==0&&!G.dc[ME]&&!G.fd[ME]; // الزر ثابت دائمًا قبل لعب أول ورقة (فلا يكشف أن معك مشروعًا)
   h=`<button id="qb" onclick="qaidUI()">قيد</button>`+(dcl?`<button id="pjb" class="on" onclick="projMenu()">المشاريع</button>`:'')+(hk()?`<button class="${UI.ak?'on':''}" ${cak?'':'disabled'} onclick="tkToggle()">إكة</button>`:'')+`<button id="bs" onclick="sawa()" ${G.turn==ME&&!G.t.length&&G.n>=1?'':'disabled'}>سوا</button>`}
+ if(ph=='b'&&G.h[ME].length==5&&G.h[ME].every(c=>c&&c.r<=2))h+=`<button class="bn" onclick="ENG.kawsh(ME)">كوش 🔄</button>`; // أوراقك كلها 7 و8 و9: لك رميها وإعادة التوزيع
  if(UI.act!==h){UI.act=h;$('act').innerHTML=h}}
 
 // ===== أفعال اللاعب (تُرسل للمحرك، وهو من يقرر) =====
