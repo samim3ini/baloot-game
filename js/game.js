@@ -29,6 +29,7 @@ function onEvent(ev){
 
 // ===== الأزرار السفلية: تُبنى من القرار الذي ينتظره المحرك منك =====
 function renderAct(cak){
+ $('kawb').classList.toggle('show',!SPEC&&G.ph=='b'&&G.h[ME].length==5&&G.h[ME].every(c=>c&&c.r<=2)); // «كوشة»: أوراقك الخمس كلها 7 و8 و9
  const p=ENG.pending(ME),ph=G.ph;
  if(SPEC){const h='<button onclick="specTurn()">↻ زاوية المشاهدة</button>';if(UI.act!==h){UI.act=h;$('act').innerHTML=h}return}
  if(p&&p.k=='lay'){layUI(p);UI.layOn=1;if(UI.act!==''){UI.act='';$('act').innerHTML=''}return} // إنزال المشروع: اختيار الأوراق
@@ -39,7 +40,7 @@ function renderAct(cak){
  else if(ph=='b'){
   if(p&&p.k=='bid'){
    if(UI.pick)h=[0,1,2,3].filter(s=>s!=p.flip).map(s=>`<button class="${s%2?'r':''}" onclick="hb('h',${s})">${SU[s]}</button>`).join('')+`<button onclick="UI.pick=0;render()">رجوع</button>`;
-   else h=`<button class="bp" onclick="hb('p')">${p.rd==1?'بس':'ولا'}</button><button class="ba" ${p.canAsh?'':'disabled'} onclick="hb('a')">أشكل</button>`+(p.rd==1?`<button class="bh" onclick="hb('h',${p.flip})">حكم <b class="${p.flip%2?'rd':''}">${SU[p.flip]}</b></button>`:`<button class="bh" onclick="UI.pick=1;render()">حكم</button>`)+`<button class="bn" onclick="hb('s')">صن ☀</button>`}
+   else h=`<button class="bp" onclick="hb('p')">${p.rd==1?'بس':'ولا'}</button><button class="ba" ${p.canAsh?'':'disabled'} onclick="hb('a')">أشكل</button>`+(p.rd==1?`<button class="bh" onclick="hb('h',${p.flip})">حكم <b class="${p.flip%2?'rd':''}">${SU[p.flip]}</b></button>`:`<button class="bh" onclick="UI.pick=1;render()">حكم ثاني</button>`)+`<button class="bn" onclick="hb('s')">صن ☀</button>`}
   else h=[G.rd==1?'بس':'ولا','أشكل','حكم','صن'].map(t=>`<button disabled>${t}</button>`).join('')}
  else if(ph=='q'&&p)h=`<button class="bn" onclick="aQ(1)">قبلك</button><button class="bp" onclick="aQ(0)">${p.rd==1?'بس':'ولا'}</button>`;
  else if(ph=='f'&&p)h=`<button class="bn" onclick="aF(1)">صن ☀</button><button class="bp" onclick="aF(0)">بس</button>`;
@@ -49,7 +50,6 @@ function renderAct(cak){
  else if(ph=='p'){
   const dcl=G.n==0&&!G.dc[ME]&&!G.fd[ME]; // الزر ثابت دائمًا قبل لعب أول ورقة (فلا يكشف أن معك مشروعًا)
   h=`<button id="qb" onclick="qaidUI()">قيد</button>`+(dcl?`<button id="pjb" class="on" onclick="projMenu()">المشاريع</button>`:'')+(hk()?`<button class="${UI.ak?'on':''}" ${cak?'':'disabled'} onclick="tkToggle()">إكة</button>`:'')+`<button id="bs" onclick="sawa()" ${G.turn==ME&&!G.t.length&&G.n>=1?'':'disabled'}>سوا</button>`}
- if(ph=='b'&&G.h[ME].length==5&&G.h[ME].every(c=>c&&c.r<=2))h+=`<button class="bn" onclick="ENG.kawsh(ME)">كوش 🔄</button>`; // أوراقك كلها 7 و8 و9: لك رميها وإعادة التوزيع
  if(UI.act!==h){UI.act=h;$('act').innerHTML=h}}
 
 // ===== أفعال اللاعب (تُرسل للمحرك، وهو من يقرر) =====

@@ -36,6 +36,7 @@ function setScore(id,v){const e=$(id);if(e.textContent==String(v))return;e.textC
 const jit=(c,n)=>{const x=Math.sin((c.s*8+c.r+1)*(n+3.7))*10000;return x-Math.floor(x)};
 function revealHtml(){return G.rev.map((h,i)=>h.length?`<div class="rv rv${R(i)}">${h.map(c=>card(c,'',`--rr:${((jit(c,1)-.5)*26).toFixed(1)}deg;--rx:${((jit(c,2)-.5)*10).toFixed(1)}px;--ry:${((jit(c,3)-.5)*12).toFixed(1)}px`)).join('')}</div>`:'').join('')}
 function showProj(ev){
+ document.querySelectorAll('.pjr.p'+R(ev.i)).forEach(x=>x.remove()); // لا يتراكب عرضان لنفس اللاعب
  const e=document.createElement('div');e.className='pjr p'+R(ev.i);
  e.innerHTML='<span>'+esc(ev.names)+'</span><div class="row">'+ev.cards.map(c=>card(c)).join('')+'</div>';
  $('stage').appendChild(e);setTimeout(()=>{if(e.remove)e.remove()},4500)}

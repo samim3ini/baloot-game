@@ -471,11 +471,30 @@ function create(env){
    bestMove=res[0][0];
    if(d>=maxD)break}
   return bestMove==null?legalNow.slice().sort((x,y)=>pt(x)*100+stg(x)-pt(y)*100-stg(y))[0]:bestMove}
+ // لمسات الحكم على قرار البوت (فوق حساب الأبناط):
+ // (أ) إذا كان شريكي رابح الأكلة وأنا قاطع (ليس معي من لونها): لا أدق بالحكم، أرمي من شكل آخر وأحتفظ بالحكم (وأطعمه بالأبناط إن كانت ورقته آسًا أو إكة معلنة).
+ // (ب) إذا لعب شريكي الشاري الحكم وكانت ورقته الرابحة هي الأعلى: أعطيه أعلى أبناط عندي من الحكم، إلا إن بقي من الحكم عند الغير القليل فأحتفظ بأوراقي.
+ const isMasterT=c=>{const pl=G.pl.flat();for(let r=0;r<8;r++)if(ST[r]>ST[c.r]&&!pl.some(x=>x.s==c.s&&x.r==r))return false;return true}; // أعلى حكم باقٍ
+ function tune(i,c){
+  if(!hk()||!G.t.length)return c;
+  const h=G.h[i],L=legal(h,i),led=G.t[0].c.s,w=win();
+  if(w.i%2!=i%2)return c;
+  if(!h.some(x=>x.s==led)){
+   const nt=L.filter(x=>!isT(x));
+   if(nt.length&&isT(c)){const sure=w.c.r==7||!!G.ann;
+    return nt.slice().sort((a,b)=>sure?(pts(b)-pts(a)||str(a)-str(b)):(pts(a)-pts(b)||str(a)-str(b)))[0]}
+   return c}
+  if(led==G.tr&&G.buyer==(i+2)%4&&isMasterT(w.c)&&L.length>1){
+   const played=G.pl.flat().filter(x=>x.s==G.tr).length,mine=h.filter(x=>x.s==G.tr&&!G.pl.flat().includes(x)).length;
+   const unseen=8-played-mine; // أوراق حكم بقيت عند غيري
+   return L.slice().sort((a,b)=>unseen>=3?(pts(b)-pts(a)):(str(a)-str(b)))[0]}
+  return c}
  function botPlay(i){
   if(G.ph!='p'||G.turn!=i||G.t.length>3)return;
   const h=G.h[i];let c;
   try{const id=solvePlay(i);c=h.find(x=>idc(x)==id)}catch(e){c=null}
   if(!c){const L=legal(h,i);c=L[0]}
+  c=tune(i,c);
   play(i,c,hk()&&!G.t.length&&!isT(c)&&c.r!=7&&isMaster(c))}
 
  // ===== واجهة المحرك العامة =====
@@ -546,7 +565,7 @@ function create(env){
   stop(){RT++;paused=0;PQ=[];W=null;QK=null;if(G)G.sq++},
   // مساعدات للواجهة
   hk,isT,val,pts,legal,pnames,sawaOK,
-  _t:{endRound,violationOf,projOptions,isMaster,sawaOK}  // للاختبارات فقط
+  _t:{endRound,violationOf,projOptions,isMaster,sawaOK,tune}  // للاختبارات فقط
  }
 }
 
