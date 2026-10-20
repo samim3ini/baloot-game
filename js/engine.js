@@ -202,7 +202,7 @@ function create(env){
   if(!y){v.ans[s]=1;G.tag[s]='تأكيد الحكم';say(s,'تأكيد الحكم');vClose();return true}
   G.vw=null;G.mode='s';G.tr=-1;G.cl=0;G.dst=0;G.dt=-1;G.m=1;G.ph='d';G.cs=-1;G.tag=['','','',''];G.tag[s]='صن';say(s,'اقلب صن');splash('صن!',2,'قلب الحكم');
   const b=s%2,o=1-b;if(S[b]>100&&S[o]<=100)dblNext();else dealRest();return true}
- function flipCands(i){const f0=(G.dealer+1)%4;if(G.fl.r==7)return i==f0?[]:[f0];return [1,2,3].map(k=>(i+k)%4)}
+ function flipCands(i){const f0=(G.dealer+1)%4;if(G.fl.r==7)return i==f0?[]:[f0];return [1,2,3].map(k=>(i+k)%4)} // بعد شراء أي لاعب للحكم يحق لكل الباقين (والموزع منهم) أخذها صنًّا أو قول بس. استثناء: إن كانت الورقة المكشوفة آسًا فلا يأخذها صنًّا إلا اللاعب الأول (وإن كان هو المشتري فلا أحد)
  function flipNext(){
   if(!G.fq.length){G.nf=1;G.ph='b';bid(G.fb.i,'h',G.fb.s);G.nf=0;return}
   G.cs=G.fq.shift();changed();botTurn()}

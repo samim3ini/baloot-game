@@ -382,4 +382,18 @@ function checkRound(E,label){
  G.pl=[[],[],[],[]];G.t=[{i:3,c:C(0,4)}];assert.strictEqual(E._t.tune(0,tr[0]),tr[0]);
  console.log('15) لمسات البوت بالحكم ✓');
 }
+
+// ---------- 16) الصن على الحكم: لكل اللاعبين (ومنهم الموزع)، إلا إذا كانت الورقة المكشوفة آسًا فللاعب الأول وحده ----------
+{
+ const run=(ace,bidder)=>{
+  const r=rig({seed:3});const E=r.E;[0,1,2,3].forEach(s=>E.setHuman(s,true));E.newGame();const G=E.G;
+  G.dealer=0;G.turn=bidder;G.rd=1;G.cnt=0;G.fl={s:2,r:ace?7:3};
+  assert.strictEqual(E.bid(bidder,'h',2),true);const asked=[];
+  while(E.G.ph=='f'){const c=E.G.cs;asked.push(c);E.answerFlip(c,false)}
+  return asked};
+ assert.deepStrictEqual(run(false,1),[2,3,0],'يُسأل الجميع بالترتيب ومنهم الموزع');
+ assert.deepStrictEqual(run(true,2),[1],'على الآس: اللاعب الأول وحده');
+ assert.deepStrictEqual(run(true,1),[],'على الآس والأول هو المشتري: لا أحد');
+ console.log('16) الصن على الحكم (واستثناء الآس) ✓');
+}
 console.log('\nكل اختبارات المحرك نجحت');
