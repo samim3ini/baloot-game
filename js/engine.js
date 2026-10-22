@@ -68,9 +68,8 @@ function create(env){
    if(hk()&&L==G.tr&&win().i%2!=i%2){const mx=Math.max(...G.t.filter(t=>t.c.s==L).map(t=>ST[t.c.r])),up=same.filter(c=>ST[c.r]>mx);return up.length?up:same} // لا تكبير إن كان شريكك هو الرابح حاليًا
    return same}
   if(hk()){const tr=h.filter(c=>c.s==G.tr),w=win();
-   // العبرة بالرابح الحالي عند دورك: شريكك رابح ← أنت حر (ولو أكل الخصم بعدك فلا قيد)، وخصمك رابح ← عليك الدق.
-   // استثناء وحيد: شريكك قاد ورقة هي الأعلى الباقية (غير الآس) ولم يقل «إكة» فعليك الدق (وجبَ عليه التنبيه).
-   if(tr.length&&(w.i%2!=i%2||(w.i==G.t[0].i&&w.c.r!=7&&isMaster(w.c)&&!G.ann))){const mx=Math.max(-1,...G.t.filter(t=>t.c.s==G.tr).map(t=>ST[t.c.r])),up=tr.filter(c=>ST[c.r]>mx);return up.length?up:tr}}
+   // الشريك الرابح يعفيك من الدق فقط إن كانت ورقته الآس، أو ورقة أعلى أُعلنت إكة. وإلا فعليك الدق.
+   if(tr.length&&(w.i%2!=i%2||(w.i==G.t[0].i&&w.c.r!=7&&!G.ann))){const mx=Math.max(-1,...G.t.filter(t=>t.c.s==G.tr).map(t=>ST[t.c.r])),up=tr.filter(c=>ST[c.r]>mx);return up.length?up:(mx>=0?h:tr)}} // إن سبق أحدٌ فدقّ ولا حكم أعلى منه معي فلا يلزمني الدق؛ وإن كان معي أعلى لزمني لعب أي حكم أعلى منه
   return h}
  function isMaster(c){const pl=G.pl.flat();for(let r=0;r<8;r++)if(SN[r]>SN[c.r]&&!pl.some(x=>x.s==c.s&&x.r==r))return false;return true}
  // السوا الصحيح: يأكل اللاعب كل الأكلات المتبقية بنفسه مهما لعب الباقون (الخصمان وشريكه يُعدّون خصومًا احتياطًا) بحسب قواعد اللعب.
@@ -413,8 +412,8 @@ function create(env){
     return same}
    if(mode){const t=h.filter(c=>SU_(c)==tr);
     const wp=trickWin(tc,tp);
-    const need=wp%2!=p%2||(wp==tp[0]&&RK_(tc[0])!=7&&isMasterS(tc[0],all)&&tc[0]===tcards[0]&&tp[0]===tpl[0]&&tcards.length>0&&!G.ann);
-    if(t.length&&need){let mx=-1;for(const c of tc)if(SU_(c)==tr)mx=Math.max(mx,ST[RK_(c)]);const up=t.filter(c=>ST[RK_(c)]>mx);return up.length?up:t}}
+    const need=wp%2!=p%2||(wp==tp[0]&&RK_(tc[0])!=7&&!(tc[0]===tcards[0]&&tp[0]===tpl[0]&&tcards.length?!!G.ann:isMasterS(tc[0],all)));
+    if(t.length&&need){let mx=-1;for(const c of tc)if(SU_(c)==tr)mx=Math.max(mx,ST[RK_(c)]);const up=t.filter(c=>ST[RK_(c)]>mx);return up.length?up:(mx>=0?h:t)}}
    return h}
   // اختصار: ورقتان متجاورتان في القوة (لا ورقة غير ملعوبة بينهما) ولهما الأبناط نفسها متكافئتان
   function reduce(ms,all){

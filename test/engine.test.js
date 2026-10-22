@@ -220,11 +220,8 @@ function checkRound(E,label){
  const r=rig({seed:3});const {E}=r;E.newGame();const G=E.G,C=(s,r)=>({s,r});
  G.mode='h';G.tr=0;G.cl=0;G.ph='p';
  const h=[C(0,2),C(1,1)]; // 9♠ (حكم) و8♥، ولا ديناري معه
- G.t=[{i:2,c:C(3,3)},{i:3,c:C(3,0)}];G.ann=0;
- G.pl=[[C(3,7)],[],[],[]]; // الآس خرج، فالعشرة صارت الأعلى
- assert(E.legal(h,0).length==1&&E.legal(h,0)[0].s==0,'العشرة هي الأعلى بلا إكة: يجب الدق');
- G.pl=[[],[],[],[]];
- assert.strictEqual(E.legal(h,0).length,2,'العشرة والآس لم يخرج: ليست الأعلى، فالرابح الحالي شريكك وأنت حر');
+ G.t=[{i:2,c:C(3,3)},{i:3,c:C(3,0)}];G.ann=0; // الشريك (2) يقود 10♦ والآس لم يخرج
+ assert(E.legal(h,0).length==1&&E.legal(h,0)[0].s==0,'10 بلا إكة: يجب الدق');
  G.ann=1;assert.strictEqual(E.legal(h,0).length,2,'مع إكة معلنة: حر');
  G.t=[{i:2,c:C(3,7)},{i:3,c:C(3,0)}];G.ann=0;assert.strictEqual(E.legal(h,0).length,2,'الآس يغني عن الإكة');
  G.t=[{i:1,c:C(3,3)},{i:2,c:C(3,0)},{i:3,c:C(3,1)}];assert(E.legal(h,0).every(c=>c.s==0),'الخصم رابح: دق (كما كان)');
@@ -400,16 +397,45 @@ function checkRound(E,label){
  console.log('16) الصن على الحكم (واستثناء الآس) ✓');
 }
 
-// ---------- 17) بلاغ المستخدم: شريكي رابح عند دوري فلا قيد حتى لو أكل الخصم بعدي ----------
+// ---------- 17) بلاغ المستخدم: الشريك قاد ورقة ليست آسًا بلا إكة فعلى القاطع الدق ولو كان شريكه رابحًا حاليًا ----------
 {
  const r=rig({seed:3});const E=r.E;E.newGame();const G=E.G,C=(s,r)=>({s,r});
  G.mode='h';G.tr=3;G.cl=0;G.ph='p';G.ann=0;G.pl=[[],[],[],[]];            // الحكم ديناري(3)
  const hand=[C(3,6),C(1,2)];                                              // شايب الحكم و9 قلب (شريا)
- G.t=[{i:2,c:C(0,5)},{i:3,c:C(0,0)}];                                     // شريكي قاد بنت الهاص، والخصم لعب السبعة
- assert.strictEqual(E._t.violationOf(hand,0,hand[1]),null,'لا قيد: شريكي هو الرابح عند دوري');
- // لكن لو كان الخصم هو الرابح عند دوري فالدق واجب
- G.t=[{i:1,c:C(0,6)},{i:2,c:C(0,0)},{i:3,c:C(0,1)}];
- const v=E._t.violationOf(hand,0,hand[1]);assert(v&&v.type=='nodq','الخصم رابح: عدم الدق قيد');
- console.log('17) لا قيد إذا كان الشريك رابحًا عند دوري ✓');
+ G.t=[{i:2,c:C(0,5)},{i:3,c:C(0,0)}];                                     // شريكي قاد بنت الهاص بلا إكة، والخصم لعب السبعة
+ const v=E._t.violationOf(hand,0,hand[1]);assert(v&&v.type=='nodq','شايب الهاص باقٍ عند الخصم: عدم الدق قيد');
+ assert.strictEqual(E._t.violationOf(hand,0,hand[0]),null,'الدق بالحكم صحيح');
+ G.ann=1;assert.strictEqual(E._t.violationOf(hand,0,hand[1]),null,'مع إكة معلنة: حر');
+ G.ann=0;G.t=[{i:2,c:C(0,7)},{i:3,c:C(0,0)}];assert.strictEqual(E._t.violationOf(hand,0,hand[1]),null,'الآس يقوم مقام الإكة: حر');
+ console.log('17) الدق إلا مع الآس أو إكة معلنة ✓');
+}
+
+// ---------- 18) دقّ الخصم بحكم: لا يلزمني الدق إلا إن كان معي حكم أعلى منه، وعندها يلزمني أي أعلى منه ----------
+{
+ const r=rig({seed:3});const E=r.E;E.newGame();const G=E.G,C=(s,r)=>({s,r});
+ G.mode='h';G.tr=3;G.cl=0;G.ph='p';G.ann=0;G.pl=[[],[],[],[]];            // الحكم ديناري(3)، واللون الأرضي هاص(0)
+ const lead=[{i:2,c:C(0,5)}];                                              // شريكي قاد بنت الهاص (بلا إكة)
+ const cut=c=>[...lead,{i:3,c}];
+ // دقّ الخصم بالتسعة (6): معي الولد فيلزمني الدق به وحده
+ G.t=cut(C(3,2));let h=[C(3,4),C(3,1),C(1,6)];
+ assert.deepStrictEqual(E.legal(h,0).map(c=>c.r),[4],'معي الولد: يلزم الدق به');
+ assert.strictEqual(E._t.violationOf(h,0,h[2]).type,'nodq','لعب غير الحكم وعنده أعلى: قيد');
+ assert.strictEqual(E._t.violationOf(h,0,h[1]).type,'nobig','حكم أصغر وعنده أعلى: قيد');
+ // دقّ الخصم بالولد (الأعلى): لا طلوع عندي فأنا حر
+ G.t=cut(C(3,4));h=[C(3,2),C(3,1),C(1,6)];
+ assert.strictEqual(E.legal(h,0).length,3,'دقّ بالولد ولا أعلى منه: حر');assert.strictEqual(E._t.violationOf(h,0,h[2]),null);
+ // دقّ بالشايب: معي العشرة فيلزمني أي أعلى منه (العشرة)، أما البنت والثمانية فلا
+ G.t=cut(C(3,6));h=[C(3,3),C(3,5),C(1,0)];
+ assert.deepStrictEqual(E.legal(h,0).map(c=>c.r),[3],'أعلى من الشايب: العشرة');
+ assert.strictEqual(E._t.violationOf(h,0,h[1]).type,'nobig','بنت الحكم وعنده أعلى من الشايب: قيد');
+ // لا يلزمني أعلى ورقة: معي الولد والتسعة ودقّ بالإكة (5): أي منهما صحيح
+ G.t=cut(C(3,7));h=[C(3,4),C(3,2),C(3,1)];
+ assert.deepStrictEqual(E.legal(h,0).map(c=>c.r).sort(),[2,4],'أي حكم أعلى من الآس صحيح');
+ // دقّ بالشايب وليس معي أعلى منه (بنت وثمانية): حر
+ G.t=cut(C(3,6));h=[C(3,5),C(3,1),C(1,0)];assert.strictEqual(E.legal(h,0).length,3,'لا طلوع: حر');
+ // إذا كان اللون الأرضي هو الحكم: يلزمني الحكم والطلوع كما كان
+ G.t=[{i:2,c:C(3,5)},{i:3,c:C(3,6)}];h=[C(3,3),C(3,1),C(1,0)];
+ assert.deepStrictEqual(E.legal(h,0).map(c=>c.r),[3],'حكم أرضي: يلزم الطلوع');
+ console.log('18) الدق فوق دقّ الخصم ✓');
 }
 console.log('\nكل اختبارات المحرك نجحت');
