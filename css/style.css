@@ -526,3 +526,10 @@ body.onl #emb{display:none}
 .avw{position:relative;display:inline-block}
 #kawb{display:none;position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);z-index:40;padding:6px 14px;border-radius:12px;background:#f2d21b;color:#2a1d05;font-weight:800;font-size:14px;white-space:nowrap;border:2px solid #fff;box-shadow:0 4px 12px #000a}
 #kawb.show{display:block}
+
+/* ===== الجولة الرابعة: يد أكبر وأقرب إلى المنتصف، ونص الدبل الصغير عند المدبِّل ===== */
+#hand{--cw:min(19vw,118px);transform:translateY(-44px)}
+#hand .cd{margin-inline-start:calc(var(--cw)*-.55)}
+#hand .cd:first-child{margin-inline-start:0}
+.dwt{display:inline-block;margin-inline-start:6px;background:#8a5a12;color:#fff;font-size:11px;font-weight:700;padding:1px 7px;border-radius:8px;white-space:nowrap;vertical-align:middle}
+.me .dwt{margin-inline-start:0}

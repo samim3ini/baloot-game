@@ -132,7 +132,7 @@ function create(env){
   RT++;RN++;W=null;QK=null;paused=0;PQ=[];
   const dk=[];for(let s=0;s<4;s++)for(let r=0;r<8;r++)dk.push({s,r});
   for(let i=dk.length-1;i>0;i--){const j=rnd()*(i+1)|0;[dk[i],dk[j]]=[dk[j],dk[i]]}
-  G={h:[0,1,2,3].map(()=>dk.splice(0,5)),fl:dk.pop(),dk,t:[],pt:[0,0],tk:[0,0],tr:-1,mode:'',n:0,pj:[0,0,0,0],pl:[[],[],[],[]],bl:[0,0],pw:-1,buyer:-1,rd:1,turn:(D+1)%4,cnt:0,ph:'b',fd:{},dc:[0,0,0,0],tag:['','','',''],ash:false,pk:[0,0,0,0],dealer:D,pile:[0,0,0,0],nf:0,m:1,dt:-1,coffee:0,cl:0,dst:0,q:[],po:[[],[],[],[]],pv:[[],[],[],[]],pcd:[[],[],[],[]],ps:[0,0,0,0],nq:0,bq:[],sb:-1,rv:{},vio:[],tl:[],sq:0,cs:-1,qa:null,res:null,dd:[0,0,0,0],ann:0,recv:-1,dealt:0};
+  G={h:[0,1,2,3].map(()=>dk.splice(0,5)),fl:dk.pop(),dk,t:[],pt:[0,0],tk:[0,0],tr:-1,mode:'',n:0,pj:[0,0,0,0],pl:[[],[],[],[]],bl:[0,0],pw:-1,buyer:-1,rd:1,turn:(D+1)%4,cnt:0,ph:'b',fd:{},dc:[0,0,0,0],tag:['','','',''],ash:false,pk:[0,0,0,0],dealer:D,pile:[0,0,0,0],nf:0,m:1,dt:-1,coffee:0,cl:0,dst:0,q:[],po:[[],[],[],[]],pv:[[],[],[],[]],pcd:[[],[],[],[]],ps:[0,0,0,0],nq:0,bq:[],sb:-1,rv:{},vio:[],tl:[],sq:0,cs:-1,qa:null,res:null,dd:[0,0,0,0],ann:0,recv:-1,dealt:0,dw:['','','','']};
   G.h.forEach(sortH);
   emit({t:'deal',dealer:D});emit({t:'fresh'});
   bidStep()}
@@ -235,7 +235,7 @@ function create(env){
  function doDouble(s,cl){
   const st=G.dst,two=hk()&&(st==0||st==2);G.dt=s%2;if(st==0)G.dp=s;if(st==3)G.coffee=1;G.m=Math.min(st+2,4);
   if(two)G.cl=cl===undefined?(rnd()<.3?1:0):(cl?1:0);else if(st==1||st==3)G.cl=0;
-  {const sb=two?(G.cl?'مقفل':'مفتوح'):'',w=DN[st]+(sb?' '+sb:'');G.tag[s]=w;say(s,w);splash(DN[st]+'!',st+2,sb)}
+  {const sb=two?(G.cl?'مقفل':'مفتوح'):'',w=DN[st]+(sb?' '+sb:'');G.dw[s]=w;say(s,w);splash(DN[st]+'!',st+2,sb)} // نص صغير عند مقعد المدبِّل فقط
   }
  function startPlay(){G.ph='p';G.tag=['','','',''];G.turn=(G.dealer+1)%4;G.cs=-1;changed();after(next,1500)}
 
