@@ -416,6 +416,24 @@ function checkRound(E,label){
  console.log('19) أشكل عند قلب الحكم ✓');
 }
 
+// ---------- 20) إنزال المشروع بعد رمي إحدى ورقاته في الأكلة الأولى: يُنزَّل الباقي فقط ولا تُكشف الورقة المرمية ----------
+{
+ const r=rig({seed:4});const {E}=r;E.setHuman(0,true);E.newGame();const G=E.G,C=(s,r)=>({s,r});
+ G.ph='p';G.mode='h';G.tr=0;G.n=0;G.turn=0;G.t=[];G.fd={};G.dc=[0,0,0,0];
+ const all=[C(1,0),C(1,1),C(1,2),C(2,3),C(2,5),C(3,3),C(3,5),C(0,4)]; // سرا هاص: 7 و8 و9
+ G.h[0]=all.slice();G.po[0]=E._t.projOptions(G.h[0]);
+ assert.strictEqual(E.project(0,[20]),true);
+ G.h[0]=all.slice(1);G.pl[0]=[all[0]];G.n=1;G.pw=0;G.turn=0;G.t=[];G.rv[0]=0; // رُمي 7 هاص في الأكلة الأولى
+ assert.strictEqual(E.pending(0).k,'lay');
+ const before=G.vio.length;
+ assert.strictEqual(E.lay(0,[1*8+1,1*8+2]),true,'ينزل الورقتين الباقيتين فقط');
+ assert.strictEqual(G.vio.length,before,'لا مخالفة: المشروع صحيح مع الورقة المرمية');
+ const ev=r.events.filter(x=>x.t=='proj').pop();
+ assert.strictEqual(ev.cards.length,2,'لا تظهر الورقة المرمية');
+ assert(!ev.cards.some(c=>c.s==1&&c.r==0));
+ console.log('20) إنزال الباقي من المشروع دون كشف الورقة المرمية ✓');
+}
+
 // ---------- 17) بلاغ المستخدم: الشريك قاد ورقة ليست آسًا بلا إكة فعلى القاطع الدق ولو كان شريكه رابحًا حاليًا ----------
 {
  const r=rig({seed:3});const E=r.E;E.newGame();const G=E.G,C=(s,r)=>({s,r});

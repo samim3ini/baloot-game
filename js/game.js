@@ -71,15 +71,15 @@ function ovClick(e){if(RESULT&&G.ph=='e'&&!(e.target.closest&&e.target.closest('
 
 // المشاريع يدوية: اختر نوع مشروعك بالنقر عليه (يمكن أكثر من واحد)، ثم المس أي مكان لإعلانه.
 // إن كان في يدك أُعلن، وإن لم يكن صحيحًا لا يُحتسب. والنقر خارج القائمة دون اختيار يغلقها فقط.
-function projMenu(){UI.pm=1;UI.sel=[0,0,0,0];showPM()}
+function projMenu(){UI.pm=1;UI.ps=[0,0,0,0];showPM()}
 function showPM(){
- const tx=UI.sel.map((n,j)=>n?PJ[PV[j]]+(n>1?' ×'+n:''):'').filter(Boolean).join(' + ');
- $('pmenu').innerHTML=`<div class="pt">${tx||'اختر مشروعك'}</div><div class="pr">${PV.map((v,j)=>`<button class="${UI.sel[j]?'on':''}" onclick="selP(${j})">${PJ[v]}${UI.sel[j]?' <b>×'+UI.sel[j]+'</b>':''}</button>`).join('')}</div><div class="ph">${tx?'المس أي مكان لإعلانه':'اضغط المشروع ثم المس أي مكان'}</div>`;
+ const tx=UI.ps.map((n,j)=>n?PJ[PV[j]]+(n>1?' ×'+n:''):'').filter(Boolean).join(' + ');
+ $('pmenu').innerHTML=`<div class="pt">${tx||'اختر مشروعك'}</div><div class="pr">${PV.map((v,j)=>`<button class="${UI.ps[j]?'on':''}" onclick="selP(${j})">${PJ[v]}${UI.ps[j]?' <b>×'+UI.ps[j]+'</b>':''}</button>`).join('')}</div><div class="ph">${tx?'المس أي مكان لإعلانه':'اضغط المشروع ثم المس أي مكان'}</div>`;
  $('pmenu').style.display='block'}
-function selP(j){const mx=j==3?1:2;UI.sel[j]=UI.sel[j]>=mx?0:UI.sel[j]+1;showPM()}
+function selP(j){const mx=j==3?1:2;UI.ps[j]=UI.ps[j]>=mx?0:UI.ps[j]+1;showPM()}
 function closePM(){UI.pm=0;$('pmenu').style.display='none';render()}
 function commitP(){
- const want=[];UI.sel.forEach((n,j)=>{for(let k=0;k<n;k++)want.push(PV[j])});
+ const want=[];(UI.ps||[]).forEach((n,j)=>{for(let k=0;k<n;k++)want.push(PV[j])});
  UI.pm=0;$('pmenu').style.display='none';
  if(!want.length||!ENG.project(ME,want))render()}
 document.addEventListener('click',e=>{if(!UI.pm)return;const path=e.composedPath?e.composedPath():[];if(!path.some(n=>n.id=='pmenu'||n.id=='pjb'))commitP()});
@@ -87,8 +87,8 @@ document.addEventListener('click',e=>{if(!UI.pm)return;const path=e.composedPath
 // إنزال المشروع (الأكلة الثانية للفريق الأقوى): تختار الأوراق التي تنزلها بنفسك، وقد تغش فتنزل أوراقًا لا تطابق إعلانك.
 const layP=()=>{const p=ENG.pending(ME);return !!p&&p.k=='lay'};
 function layUI(p){
- const sel=UI.ls||(UI.ls=[]),pool=[...G.h[ME],...G.pl[ME]].sort((a,b)=>a.s-b.s||b.r-a.r);
- $('pmenu').innerHTML=`<div class="pt">أنزل مشروعك: ${p.want.map(v=>PJ[v]).join(' + ')}</div><div class="lyc">${pool.map(c=>{const id=c.s*8+c.r;return `<div class="lyk ${sel.includes(id)?'on':''}" onclick="layPick(${id})">${card(c)}</div>`}).join('')}</div><div class="pr"><button class="bh" onclick="layGo()">تنزيل ${sel.length?'('+sel.length+')':''}</button><button class="bp" onclick="layNo()">لا أنزل</button></div><div class="ph">اختر الأوراق التي تنزلها ثم اضغط تنزيل</div>`;
+ const sel=UI.ls||(UI.ls=[]),pool=sortHand(G.h[ME]); // الأوراق التي في يدك فقط (ما رُمي في الأكلة الأولى لا يظهر)
+ $('pmenu').innerHTML=`<div class="pt">أنزل مشروعك: ${p.want.map(v=>PJ[v]).join(' + ')}</div><div class="lyc" style="--n:${pool.length}">${pool.map(c=>{const id=c.s*8+c.r;return `<div class="lyk ${sel.includes(id)?'on':''}" onclick="layPick(${id})">${card(c)}</div>`}).join('')}</div><div class="pr"><button class="bh" onclick="layGo()">تنزيل ${sel.length?'('+sel.length+')':''}</button><button class="bp" onclick="layNo()">لا أنزل</button></div><div class="ph">اختر الأوراق التي تنزلها ثم اضغط تنزيل</div>`;
  $('pmenu').style.display='block'}
 function layPick(id){const s=UI.ls||(UI.ls=[]),k=s.indexOf(id);if(k>=0)s.splice(k,1);else s.push(id);render()}
 function layGo(){const ids=(UI.ls||[]).slice();if(!ids.length)return;UI.ls=[];ENG.lay(ME,ids)}

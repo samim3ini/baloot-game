@@ -544,3 +544,37 @@ body.onl #emb{display:none}
 /* التراكب يضبطه fitHand تلقائيًا (--mo) */
 #hand .cd{margin-inline-start:calc(var(--cw)*var(--mo,-.55))}
 #hand .cd:first-child{margin-inline-start:0}
+
+/* ===== إكة: وسم كبير ملفت عند اللاعب (بدل النص الصغير) ===== */
+.ekk{position:absolute;z-index:13;pointer-events:none;font-weight:900;font-size:clamp(38px,11vw,60px);line-height:1;padding:6px 26px 10px;border-radius:20px;color:#2a1d05;background:linear-gradient(#fff0a6,#f2c230 55%,#d9981b);border:3px solid #fffbe0;box-shadow:0 0 0 3px #000a,0 0 34px 8px #ffd54bcc,0 10px 24px #000b;text-shadow:0 2px 0 #fff8;white-space:nowrap;animation:ekp 2s ease-out both}
+.ekk.p0{left:50%;bottom:260px;translate:-50% 0}
+.ekk.p2{left:50%;top:150px;translate:-50% 0}
+.ekk.p1{right:70px;top:36%}
+.ekk.p3{left:70px;top:36%}
+@keyframes ekp{0%{scale:.15;rotate:-10deg;opacity:0}14%{scale:1.45;rotate:4deg;opacity:1}26%{scale:1;rotate:0deg}38%{scale:1.12}50%{scale:1}86%{opacity:1;scale:1}100%{opacity:0;scale:1.15}}
+@media(max-width:820px){.ekk{padding:4px 18px 8px;border-width:2px}.ekk.p0{bottom:235px}.ekk.p2{top:110px}.ekk.p1{right:6px;top:30%}.ekk.p3{left:6px;top:30%}}
+
+/* ===== المشاريع المنزلة: أوراق أكبر في الجوال ===== */
+@media(max-width:820px){
+ .pjr{padding:5px 9px;font-size:14px;max-width:64%}
+ .pjr .cd{--cw:min(12.5vw,50px);margin-inline-start:calc(var(--cw)*-.38)}
+ .pjr .cd:first-child{margin-inline-start:0}
+}
+
+/* ===== واجهة إنزال المشروع: كل الأوراق في صف واحد بتراكب خفيف ===== */
+#pmenu .lyc{--W:calc(min(92vw,430px) - 24px);--lcw:min(64px,calc(var(--W) / (1 + (var(--n,8) - 1) * .62)));display:flex;flex-wrap:nowrap;justify-content:center;direction:ltr;gap:0;margin:6px 0 10px;padding-top:12px}
+#pmenu .lyk{flex:none;margin-inline-start:calc(var(--lcw)*-.38)}
+#pmenu .lyk:first-child{margin-inline-start:0}
+#pmenu .lyk .cd{--cw:var(--lcw)}
+
+/* ===== الجوال: مقاعد اللاعبين أصغر، والنتيجة عريضة وفي الوسط ===== */
+@media(max-width:820px){
+ .seat{width:62px}
+ .av{width:34px;height:34px;border-width:2px}
+ .pl{padding:14px 3px 3px;margin-top:-12px;border-radius:9px}
+ .pl .nm{font-size:10px;padding:0 3px}
+ .bk u{width:18px;height:27px;margin:0 -8px}.bk{height:27px}
+ #side .st{flex:1.6 1 0;min-width:0;text-align:center}
+ #side .st .v{justify-content:center;gap:40px;width:100%;box-sizing:border-box}
+ #side #info{flex:1 1 0;min-width:0}
+}

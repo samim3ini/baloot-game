@@ -275,7 +275,7 @@ function create(env){
  // الإعلان كلامي (يُعرف للجميع)، والإنزال في الأكلة الثانية للفريق الأقوى فقط. اللاعب البشري يختار الأوراق بنفسه (قد يغش)،
  // والبوت ينزل أوراقه الحقيقية. المشروع الكاذب يُحتسب إن لم يُقيَّد، ويُكشف بقيد «مشروع كاذب».
  const needLay=seat=>!!G&&G.ph=='p'&&G.n==1&&G.pw==seat%2&&G.pv[seat].length>0&&!G.rv[seat]&&humans[seat]&&G.turn==seat&&G.t.length<4&&!G.qa;
- function layShow(i){G.rv[i]=1;emit({t:'proj',i,names:pnames(i),cards:G.pcd[i].flat().map(c=>({s:c.s,r:c.r}))});changed()}
+ function layShow(i){G.rv[i]=1;emit({t:'proj',i,names:pnames(i),cards:G.pcd[i].flat().filter(c=>!G.pl[i].some(p=>idc(p)==idc(c))).map(c=>({s:c.s,r:c.r}))});changed()} // لا تُكشف الورقة التي رُميت في الأكلة الأولى: على الخصم أن يتذكرها
  function autoLay(i){if(G.pcd[i].length)layShow(i);else{G.pv[i]=[];G.pk[i]=0;G.pj[i]=0}}
  function lay(seat,ids){
   if(!live(seat)||!needLay(seat)||!Array.isArray(ids)||ids.length>8)return false;
@@ -283,7 +283,8 @@ function create(env){
   const pool=[...G.h[seat],...G.pl[seat]],cs=[];
   for(const id of ids){if(!Number.isInteger(id)||id<0||id>31)return false;const c=pool.find(x=>idc(x)==id);if(!c||cs.includes(c))return false;cs.push(c)}
   const key=a=>a.slice().sort((x,y)=>x-y).join();
-  const o=projOptions(cs).find(x=>key(x.items.map(y=>y.v))==key(G.pv[seat]));
+  const full=cs.slice();for(const c of G.pl[seat])if(!full.includes(c))full.push(c); // الأوراق المنزَّلة + ما رُمي في الأكلة الأولى = المشروع كاملًا
+  const o=projOptions(full).find(x=>key(x.items.map(y=>y.v))==key(G.pv[seat]));
   if(o)G.pcd[seat]=o.items.map(x=>x.cards);
   else{G.pcd[seat]=[cs];G.vio.push({type:'proj',i:seat,c:null,leg:[]})}
   layShow(seat);return true}

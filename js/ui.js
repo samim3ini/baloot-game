@@ -3,6 +3,7 @@ function log(){}
 const BIDW=/^(بس|ولا|صن|حكم|أشكل|قبلك|دبل|ثري|فور|قهوة)/;
 function say(i,m){
  if(i>=0&&BIDW.test(m))return;
+ if(i>=0&&m=='إكة'){ekka(i);return} // الإكة: وسم كبير عند اللاعب بدل النص الصغير
  const e=$('msg');e.textContent=(i>=0?NM[i]+': ':'')+m;e.classList.add('show');clearTimeout(mt);mt=setTimeout(()=>e.classList.remove('show'),1800)}
 const SKIN={},ck=c=>RK[c.r]+SUL[c.s],IMGS=[];let UP={};
 function card(c,k='',st=''){if(!c)return `<div class="cd bkcard ${k}" style="${st}"></div>`;const r=c.r,s=SU[c.s],u=SKIN[ck(c)];
@@ -28,6 +29,10 @@ function skinGo(){const fs=[...$('fi').files],m={};ALLK.forEach(k=>m[k.toLowerCa
  Promise.all(fs.map(f=>{const k=m[f.name.replace(/\.[^.]*$/,'').toLowerCase()];return k?new Promise(r=>{const fr=new FileReader();fr.onload=()=>r([k,fr.result]);fr.onerror=()=>r(null);fr.readAsDataURL(f)}):null})).then(async a=>{const o={...UP};a.filter(Boolean).forEach(([k,v])=>o[k]=v);UP=o;await idb('set',o);Object.assign(SKIN,o);applySkin();OVP=null;$('ov').style.display='none';skinUI()})}
 function skinReset(){UP={};idb('del');ALLK.forEach(k=>delete SKIN[k]);applySkin();loadSkin();OVP=null;$('ov').style.display='none';skinUI()}
 
+function ekka(i){
+ document.querySelectorAll('.ekk.p'+R(i)).forEach(x=>x.remove());
+ const e=document.createElement('div');e.className='ekk p'+R(i);e.textContent='إكة';
+ $('stage').appendChild(e);setTimeout(()=>{if(e.remove)e.remove()},2000)}
 function share(){if(navigator.share)navigator.share({title:'بلوت',url:location.href}).catch(()=>{});else if(navigator.clipboard)navigator.clipboard.writeText(location.href).then(()=>say(-1,'تم نسخ الرابط')).catch(()=>{})}
 function splash(t,lv,sb){const e=document.createElement('div');e.className='splash lv'+lv;e.innerHTML=t+(sb?`<small>${sb}</small>`:'');$('stage').appendChild(e);if(lv>=3){$('stage').classList.add('shake');setTimeout(()=>$('stage').classList.remove('shake'),600)}setTimeout(()=>{if(e.remove)e.remove()},1700)}
 function confetti(n=44){const b=document.body;if(!b)return;const c=['#d9ae4a','#7db4ff','#ff9f86','#6fc263','#fff'];for(let i=0;i<n;i++){const e=document.createElement('div');e.className='cf';e.style.left=(Math.random()*100)+'vw';e.style.background=c[i%5];e.style.animationDelay=(Math.random()*.6)+'s';e.style.setProperty('--dx',((Math.random()-.5)*200)+'px');b.appendChild(e);setTimeout(()=>{if(e.remove)e.remove()},3600)}}
@@ -45,6 +50,12 @@ function showProj(ev){
 function pileHtml(i){const n=G.pile[i];if(!n)return'';const L=Math.min(n,3);return `<div class="pile" style="--n:3">${Array.from({length:L},(_,k)=>`<u style="--k:${k}"></u>`).join('')}<b>${n}</b></div>`}
 const esc=t=>String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const DLR='<div class="dlr" title="الموزع"><i></i><span>موزع</span></div>';
+const HAND_SUITS=[1,2,3,0]; // هاص ♥ ثم شريا ♣ ثم ديمن ♦ ثم سبيت ♠
+const HAND_RTL=true; // true: يُقرأ الترتيب من اليمين إلى اليسار (غيّرها إلى false ليبدأ من اليسار)
+function sortHand(h){
+ const tr=hk()?G.tr:-1,pos=s=>HAND_SUITS.indexOf(s),rk=c=>c.s==tr?ST[c.r]:SN[c.r]; // لون الحكم وحده بترتيب قوة الحكم
+ const a=h.filter(Boolean).sort((x,y)=>pos(x.s)-pos(y.s)||rk(y)-rk(x));
+ return HAND_RTL?a.reverse():a}
 function render(){
  const us=ME%2,them=1-us;setScore('s0',S[us]);setScore('s1',S[them]);$('streak').textContent=STREAK>=2?'🔥 '+STREAK+' جولات متتالية':'';
  $('hist').innerHTML=HIST.map(h=>`<tr><td>${h.n}</td><td>${h.mode}${h.m>1?' ×'+h.m:''}</td><td class="a">${h.p[us]}</td><td class="b">${h.p[them]}</td></tr>`).join('');{const hs=$('hsc');hs.scrollTop=hs.scrollHeight}
@@ -57,9 +68,9 @@ function render(){
  const nw=G.t.length>(UI.rn||0);$('mid').className='';const mh=(G.ph=='b'||G.ph=='f'||G.ph=='q'||G.ph=='v'||(G.ph=='d'&&!G.dealt)||G.fly!=null?`<div class="fl${G.fly!=null?' fly'+R(G.fly):''}">${card(G.fl)}</div>`:'')+G.t.map((x,k)=>card(x.c,'pc pc'+R(x.i)+(nw&&k==G.t.length-1?' pin':''))).join('')+(G.rev?revealHtml():'');{const mk=mh.replace(/ pin/g,'');if(UI.mk!==mk){UI.mk=mk;$('mid').innerHTML=mh}} // لا تُعاد الأوراق الملقاة إن لم تتغير (يمنع وميض الورقة البيضاء)
  UI.rn=G.t.length;
  const my=!SPEC&&G.ph=='p'&&G.turn==ME&&G.t.length<4&&!layP(),n0=G.h[ME].length,cak=my&&hk()&&!G.t.length;if(!cak)UI.ak=0;if(!my)UI.sel=-1;
- {const hkey=G.h[ME].map(c=>c.s*8+c.r).join()+'|'+(my?1:0)+'|'+UI.sel; // لا تُعاد بناء اليد إن لم تتغير (يمنع الوميض خصوصًا في الآيفون)
+ {const HH=sortHand(G.h[ME]),hkey=HH.map(c=>c.s*8+c.r).join()+'|'+(my?1:0)+'|'+UI.sel; // لا تُعاد بناء اليد إن لم تتغير (يمنع الوميض خصوصًا في الآيفون)
  if(FRESH||UI.hk!==hkey||(!$('hand').children.length&&n0)){UI.hk=hkey;$('hand').innerHTML='';
- G.h[ME].forEach((c,k)=>{const d=document.createElement('div');d.innerHTML=card(c,(my?'ok':'')+(UI.sel==c.s*8+c.r?' sel':'')+(FRESH?' dlv':''));const e=d.firstChild;if(FRESH)e.style.animationDelay=(k*60)+'ms';
+ HH.forEach((c,k)=>{const d=document.createElement('div');d.innerHTML=card(c,(my?'ok':'')+(UI.sel==c.s*8+c.r?' sel':'')+(FRESH?' dlv':''));const e=d.firstChild;if(FRESH)e.style.animationDelay=(k*60)+'ms';
   e.style.setProperty('--r',((k-(n0-1)/2)*4)+'deg');e.style.setProperty('--y0',(Math.abs(k-(n0-1)/2)*3)+'px');
   if(my)e.onclick=()=>hp(c);$('hand').appendChild(e)})}
  FRESH=0}
