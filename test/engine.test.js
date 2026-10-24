@@ -397,6 +397,25 @@ function checkRound(E,label){
  console.log('16) الصن على الحكم (واستثناء الآس) ✓');
 }
 
+// ---------- 19) أشكل عند قلب الحكم: لمن يحق له قولها (الموزع أو من على يمينه في الدور الأول) ----------
+{
+ const go=(seat,ash,rd)=>{
+  const r=rig({seed:3});const E=r.E;[0,1,2,3].forEach(s=>E.setHuman(s,true));E.newGame();const G=E.G;
+  G.dealer=0;G.turn=1;G.rd=rd;G.cnt=0;G.fl={s:2,r:3};
+  assert.strictEqual(E.bid(1,'h',rd==1?2:0),true);
+  while(E.G.ph=='f'&&E.G.cs!=seat)E.answerFlip(E.G.cs,false);
+  assert.strictEqual(E.G.cs,seat);const pend=E.pending(seat);
+  E.answerFlip(seat,true,ash);return {E,pend}};
+ let o=go(0,true,1);
+ assert.strictEqual(o.pend.canAsh,true,'الموزع يرى أشكل');
+ assert.strictEqual(o.E.G.mode,'s');assert.strictEqual(o.E.G.ash,true);assert.strictEqual(o.E.G.buyer,0);
+ o=go(3,true,1);assert.strictEqual(o.pend.canAsh,true,'من على يمين الموزع يرى أشكل');assert.strictEqual(o.E.G.ash,true);
+ o=go(2,true,1);assert.strictEqual(o.pend.canAsh,false,'غيرهما لا يرى أشكل');assert.strictEqual(o.E.G.ash,false);assert.strictEqual(o.E.G.mode,'s','يصير صنًّا عاديًا');
+ o=go(0,false,1);assert.strictEqual(o.E.G.ash,false,'صن عادي');
+ o=go(0,true,2);assert.strictEqual(o.pend.canAsh,false,'لا أشكل في الدور الثاني');assert.strictEqual(o.E.G.ash,false);
+ console.log('19) أشكل عند قلب الحكم ✓');
+}
+
 // ---------- 17) بلاغ المستخدم: الشريك قاد ورقة ليست آسًا بلا إكة فعلى القاطع الدق ولو كان شريكه رابحًا حاليًا ----------
 {
  const r=rig({seed:3});const E=r.E;E.newGame();const G=E.G,C=(s,r)=>({s,r});

@@ -43,7 +43,7 @@ function renderAct(cak){
    else h=`<button class="bp" onclick="hb('p')">${p.rd==1?'بس':'ولا'}</button><button class="ba" ${p.canAsh?'':'disabled'} onclick="hb('a')">أشكل</button>`+(p.rd==1?`<button class="bh" onclick="hb('h',${p.flip})">حكم <b class="${p.flip%2?'rd':''}">${SU[p.flip]}</b></button>`:`<button class="bh" onclick="UI.pick=1;render()">حكم ثاني</button>`)+`<button class="bn" onclick="hb('s')">صن ☀</button>`}
   else h=[G.rd==1?'بس':'ولا','أشكل','حكم','صن'].map(t=>`<button disabled>${t}</button>`).join('')}
  else if(ph=='q'&&p)h=`<button class="bn" onclick="aQ(1)">قبلك</button><button class="bp" onclick="aQ(0)">${p.rd==1?'بس':'ولا'}</button>`;
- else if(ph=='f'&&p)h=`<button class="bn" onclick="aF(1)">صن ☀</button><button class="bp" onclick="aF(0)">بس</button>`;
+ else if(ph=='f'&&p)h=`<button class="bn" onclick="aF(1)">صن ☀</button>${p.canAsh?`<button class="ba" onclick="aF(1,1)">أشكل</button>`:''}<button class="bp" onclick="aF(0)">بس</button>`;
  else if((ph=='d'||ph=='v')&&p&&p.k=='double'){const n=p.n;h=(p.two?`<button class="bh" onclick="aD(1,0)">${n} مفتوح</button><button class="ba" onclick="aD(1,1)">${n} مقفل</button>`:`<button class="bh" onclick="aD(1,0)">${n}</button>`)+`<button class="bp" onclick="aD(0)">بس</button>`}
  else if(ph=='v'&&p&&p.k=='toSun')h=`<button class="bn" onclick="aW(1)">اقلب صن ☀</button><button class="bh" onclick="aW(0)">تأكيد الحكم</button>`;
  else if(ph=='x')h=`<button id="qb" onclick="qaidUI()">قيد</button>`; // يمكن القيد أثناء انتظار النتيجة
@@ -55,7 +55,7 @@ function renderAct(cak){
 // ===== أفعال اللاعب (تُرسل للمحرك، وهو من يقرر) =====
 function hb(k,s){UI.pick=0;ENG.bid(ME,k,s)}
 function aQ(y){ENG.answerBefore(ME,y)}
-function aF(y){ENG.answerFlip(ME,y)}
+function aF(y,a){ENG.answerFlip(ME,y,a)}
 function aD(y,cl){ENG.answerDouble(ME,y,cl)}
 function aW(y){ENG.answerSun(ME,y)}
 function tkToggle(){UI.ak=!UI.ak;render()}

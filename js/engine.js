@@ -202,13 +202,14 @@ function create(env){
   if(!y){v.ans[s]=1;G.tag[s]='تأكيد الحكم';say(s,'تأكيد الحكم');vClose();return true}
   G.vw=null;G.mode='s';G.tr=-1;G.cl=0;G.dst=0;G.dt=-1;G.m=1;G.ph='d';G.cs=-1;G.tag=['','','',''];G.tag[s]='صن';say(s,'اقلب صن');splash('صن!',2,'قلب الحكم');
   const b=s%2,o=1-b;if(S[b]>100&&S[o]<=100)dblNext();else dealRest();return true}
+ function canAshSeat(i){return G.rd==1&&(i==G.dealer||i==(G.dealer+3)%4)}
  function flipCands(i){const f0=(G.dealer+1)%4;if(G.fl.r==7)return i==f0?[]:[f0];return [1,2,3].map(k=>(i+k)%4)} // بعد شراء أي لاعب للحكم يحق لكل الباقين (والموزع منهم) أخذها صنًّا أو قول بس. استثناء: إن كانت الورقة المكشوفة آسًا فلا يأخذها صنًّا إلا اللاعب الأول (وإن كان هو المشتري فلا أحد)
  function flipNext(){
   if(!G.fq.length){G.nf=1;G.ph='b';bid(G.fb.i,'h',G.fb.s);G.nf=0;return}
   G.cs=G.fq.shift();changed();botTurn()}
- function ansF(c,y){
+ function ansF(c,y,ash){
   if(G.ph!='f'||G.cs!=c)return;
-  if(y){G.ph='b';return bid(c,'s')}
+  if(y){G.ph='b';return bid(c,ash&&canAshSeat(c)?'a':'s')} // أشكل نوع من الصن: يجوز عند قلب الحكم لمن يحق له قوله في الدور الأول
   G.tag[c]='بس';G.ps[c]=1;say(c,'بس');flipNext()}
  function beforeCands(i){const f0=(G.dealer+1)%4,pi=((i-f0)%4+4)%4;return [0,1,2,3].filter(p=>p<pi).map(p=>(f0+p)%4).filter(x=>G.ps[x])}
  function qNext(){
@@ -504,7 +505,7 @@ function create(env){
   if(!G||G.qa||!humans[seat])return null;
   if(G.ph=='b'&&G.turn==seat)return {k:'bid',rd:G.rd,flip:G.fl.s,canAsh:G.rd==1&&(seat==G.dealer||seat==(G.dealer+3)%4)};
   if(G.ph=='q'&&G.cs==seat)return {k:'before',rd:G.rd};
-  if(G.ph=='f'&&G.cs==seat)return {k:'flip'};
+  if(G.ph=='f'&&G.cs==seat)return {k:'flip',canAsh:canAshSeat(seat)};
   if(G.ph=='d'&&G.cs==seat){const st=G.dst;return {k:'double',st,n:DN[st],two:hk()&&(st==0||st==2)}}
   if(G.ph=='v'&&G.vw&&!G.vw.ans[seat]){if(seat==G.buyer)return {k:'toSun'};if(seat%2!=G.buyer%2)return {k:'double',st:0,n:DN[0],two:true}}
   if(needLay(seat))return {k:'lay',want:G.pv[seat].slice()};
@@ -529,7 +530,7 @@ function create(env){
    else return false;
    bid(seat,k,s);return true},
   answerBefore(seat,y){if(!live(seat)||G.ph!='q'||G.cs!=seat)return false;ansQ(seat,!!y);return true},
-  answerFlip(seat,y){if(!live(seat)||G.ph!='f'||G.cs!=seat)return false;ansF(seat,!!y);return true},
+  answerFlip(seat,y,ash){if(!live(seat)||G.ph!='f'||G.cs!=seat)return false;ansF(seat,!!y,!!ash);return true},
   kawsh(seat){if(!live(seat)||!kawOK(seat))return false;kawGo(seat);return true},
   answerSun(seat,y){return live(seat)?vSun(seat,!!y):false},
   answerDouble(seat,y,cl){if(!live(seat))return false;if(G.ph=='v')return vDbl(seat,!!y,cl);if(G.ph!='d'||G.cs!=seat)return false;ansD(seat,y?1:0,cl);return true},

@@ -57,10 +57,12 @@ function render(){
  const nw=G.t.length>(UI.rn||0);$('mid').className='';const mh=(G.ph=='b'||G.ph=='f'||G.ph=='q'||G.ph=='v'||(G.ph=='d'&&!G.dealt)||G.fly!=null?`<div class="fl${G.fly!=null?' fly'+R(G.fly):''}">${card(G.fl)}</div>`:'')+G.t.map((x,k)=>card(x.c,'pc pc'+R(x.i)+(nw&&k==G.t.length-1?' pin':''))).join('')+(G.rev?revealHtml():'');{const mk=mh.replace(/ pin/g,'');if(UI.mk!==mk){UI.mk=mk;$('mid').innerHTML=mh}} // لا تُعاد الأوراق الملقاة إن لم تتغير (يمنع وميض الورقة البيضاء)
  UI.rn=G.t.length;
  const my=!SPEC&&G.ph=='p'&&G.turn==ME&&G.t.length<4&&!layP(),n0=G.h[ME].length,cak=my&&hk()&&!G.t.length;if(!cak)UI.ak=0;if(!my)UI.sel=-1;
- $('hand').innerHTML='';
+ {const hkey=G.h[ME].map(c=>c.s*8+c.r).join()+'|'+(my?1:0)+'|'+UI.sel; // لا تُعاد بناء اليد إن لم تتغير (يمنع الوميض خصوصًا في الآيفون)
+ if(FRESH||UI.hk!==hkey||(!$('hand').children.length&&n0)){UI.hk=hkey;$('hand').innerHTML='';
  G.h[ME].forEach((c,k)=>{const d=document.createElement('div');d.innerHTML=card(c,(my?'ok':'')+(UI.sel==c.s*8+c.r?' sel':'')+(FRESH?' dlv':''));const e=d.firstChild;if(FRESH)e.style.animationDelay=(k*60)+'ms';
   e.style.setProperty('--r',((k-(n0-1)/2)*4)+'deg');e.style.setProperty('--y0',(Math.abs(k-(n0-1)/2)*3)+'px');
-  if(my)e.onclick=()=>hp(c);$('hand').appendChild(e)});FRESH=0;
+  if(my)e.onclick=()=>hp(c);$('hand').appendChild(e)})}
+ FRESH=0}
  document.querySelector('.me').className='me tm0'+(act?(G.turn==ME?' on':' dim'):'')+(G.mode&&G.buyer==ME?' buyer':'');document.querySelector('.me .nm').textContent=SPEC?'مشاهد · مقعد '+(ME+1):'أنت';
  $('dl0').style.display=G.dealer==ME&&!G.mode?'':'none';$('pl0').innerHTML=pileHtml(ME);$('stage').classList.toggle('myturn',!!my);$('rdn').style.display='none';
  $('dblb').innerHTML='';{const t0=G.ph=='p'&&G.tag[ME],dw=G.dw&&G.dw[ME];$('by0').innerHTML=(t0?esc(t0):bdg(ME))+(dw?`<small class="dwt">${esc(dw)}</small>`:'');$('by0').style.display=t0||dw||(G.mode&&G.buyer==ME)?'':'none'}
@@ -68,34 +70,36 @@ function render(){
  renderAct(cak);qaidSync();fitHand()
 }
 
-// ضبط اليد تلقائيًا: أكبر ما يمكن وأقرب ما يمكن إلى أوراق المنتصف دون أن تلمسها.
+// ضبط اليد تلقائيًا: أكبر ما يمكن، أقرب ما يمكن إلى أوراق المنتصف دون أن تلمسها، ومفرّقة بقدر ما يسمح العرض.
 // تقيس مكان آخر ورقة ممكنة في المنتصف (ورقتك أنت) وأعلى الشريط السفلي وعرض الطاولة،
-// ثم تضبط التكبير --hs والإزاحة --hy (تحويل بصري فقط، لا يغيّر تخطيط الصفحة).
-// الحساب دائمًا على يد كاملة من 8 أوراق، فيبقى الحجم ثابتًا طوال الجولة مهما قلّ عدد الأوراق.
-const HS_MAX=1.5,HS_MIN=.8;
+// ثم تضبط التكبير --hs والإزاحة --hy والتراكب --mo (تحويل بصري فقط، لا يغيّر تخطيط الصفحة).
+// القياس على 8 أوراق وهمية مؤقتة (الأوراق الحقيقية لا تُلمس)، فيبقى الحجم ثابتًا طوال الجولة.
+const HS_MAX=1.5,HS_MIN=.8,OVS=[.36,.42,.48,.54,.60,.66]; // OVS: التراكب من الأكثر تفريقًا إلى الأكثر تقاربًا
 function fitHand(){
- const h=$('hand'),mid=$('mid'),bar=$('bar'),st=$('stage');
+ const h=document.getElementById('hand'),mid=document.getElementById('mid'),bar=document.getElementById('bar'),st=document.getElementById('stage');
  if(!h||!mid||!bar||!st)return;
- const orig=[...h.children],dm=[];
- for(let k=0;k<8;k++){const d=document.createElement('div');d.className='cd';d.style.setProperty('--r',((k-3.5)*4)+'deg');d.style.setProperty('--y0',(Math.abs(k-3.5)*3)+'px');dm.push(d)}
- h.classList.add('fm');h.style.setProperty('--hs','1');h.style.setProperty('--hy','0px');
- h.replaceChildren(...dm);
- const hr=h.getBoundingClientRect();
- let t0=1e9,b0=-1e9,l0=1e9,r0=-1e9;
- for(const c of dm){const r=c.getBoundingClientRect();t0=Math.min(t0,r.top);b0=Math.max(b0,r.bottom);l0=Math.min(l0,r.left);r0=Math.max(r0,r.right)}
+ const sr=st.getBoundingClientRect(),br=bar.getBoundingClientRect(),mr=mid.getBoundingClientRect();
+ const sig=[sr.width,sr.height,br.top,mr.top,mr.height,innerWidth,innerHeight].map(Math.round).join();
+ if(UI.fs===sig)return;
+ const dm=[];
+ for(let k=0;k<8;k++){const d=document.createElement('div');d.className='cd dm';d.style.setProperty('--r',((k-3.5)*4)+'deg');d.style.setProperty('--y0',(Math.abs(k-3.5)*3)+'px');dm.push(d)}
+ h.classList.add('fm');h.style.setProperty('--hs','1');h.style.setProperty('--hy','0px');h.prepend(...dm);
+ const hr=h.getBoundingClientRect(),box=()=>{let t=1e9,b=-1e9,l=1e9,r=-1e9;for(const c of dm){const q=c.getBoundingClientRect();t=Math.min(t,q.top);b=Math.max(b,q.bottom);l=Math.min(l,q.left);r=Math.max(r,q.right)}return{t,b,l,r}};
  const pr=document.createElement('div');pr.className='cd pc pc0';pr.style.visibility='hidden';mid.appendChild(pr);
  const pb=pr.getBoundingClientRect().bottom;mid.removeChild(pr);
- const barTop=bar.getBoundingClientRect().top,sw=st.getBoundingClientRect().width;
- h.replaceChildren(...orig);h.classList.remove('fm');
- const H0=b0-t0,W0=r0-l0,oy=hr.bottom;
- if(!(H0>0&&W0>0&&sw>0))return;
- const GAP=12,CAP=.22,HUG=.06; // فراغ عن أوراق المنتصف، أقصى جزء يختفي تحت الشريط، الجزء المخفي المفضل
- let s=Math.min(HS_MAX,(sw-16)/W0,(barTop-pb-GAP)/(H0*(1-CAP)));
- s=Math.max(HS_MIN,s);
- const hh=H0*s,bot=Math.max(barTop+HUG*hh,pb+GAP+hh);
- h.style.setProperty('--hs',s.toFixed(3));
- h.style.setProperty('--hy',(bot-(oy+(b0-oy)*s)).toFixed(1)+'px');
-}
+ const barTop=br.top,sw=sr.width,GAP=12,CAP=.22,HUG=.06; // فراغ عن أوراق المنتصف، أقصى جزء يختفي تحت الشريط، الجزء المخفي المفضل
+ const ws=OVS.map(ov=>{h.style.setProperty('--mo',-ov);const x=box();return{ov,w:x.r-x.l,t:x.t,b:x.b}});
+ dm.forEach(d=>d.remove());h.classList.remove('fm');
+ const H0=ws[0].b-ws[0].t,oy=hr.bottom;
+ if(!(H0>0&&ws[0].w>0&&sw>0))return;
+ const sT=Math.min(HS_MAX,(barTop-pb-GAP)/(H0*(1-CAP))); // الحجم المطلوب بحسب الارتفاع
+ let pick=null;
+ for(const o of ws){const so=Math.min(sT,(sw-16)/o.w);if(so>=.9*sT){pick={o,s:so};break}}
+ if(!pick){const o=ws[ws.length-1];pick={o,s:Math.min(sT,(sw-16)/o.w)}}
+ const s=Math.max(HS_MIN,pick.s),o=pick.o,hh=H0*s,bot=Math.max(barTop+HUG*hh,pb+GAP+hh);
+ h.style.setProperty('--mo',-o.ov);h.style.setProperty('--hs',s.toFixed(3));
+ h.style.setProperty('--hy',(bot-(oy+(o.b-oy)*s)).toFixed(1)+'px');
+ UI.fs=sig}
 addEventListener('resize',fitHand);
 if(window.ResizeObserver){const ro=new ResizeObserver(()=>fitHand());ro.observe(document.getElementById('stage'));ro.observe(document.getElementById('tbl'))}
 
