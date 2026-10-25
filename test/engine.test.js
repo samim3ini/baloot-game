@@ -383,18 +383,75 @@ function checkRound(E,label){
  console.log('15) لمسات البوت بالحكم ✓');
 }
 
-// ---------- 16) الصن على الحكم: لكل اللاعبين (ومنهم الموزع)، إلا إذا كانت الورقة المكشوفة آسًا فللاعب الأول وحده ----------
+// ---------- 16) الصن على الحكم: الإكة في الأرض (لا يقلبه المشتري ويقلبه الباقون في الدورين)، وغير الإكة (الدور الأول للجميع، والثاني للمشتري ومن بعده فقط) ----------
 {
- const run=(ace,bidder)=>{
+ const run=(ace,bidder,rd=1)=>{
   const r=rig({seed:3});const E=r.E;[0,1,2,3].forEach(s=>E.setHuman(s,true));E.newGame();const G=E.G;
-  G.dealer=0;G.turn=bidder;G.rd=1;G.cnt=0;G.fl={s:2,r:ace?7:3};
-  assert.strictEqual(E.bid(bidder,'h',2),true);const asked=[];
+  G.dealer=0;G.turn=bidder;G.rd=rd;G.cnt=0;G.fl={s:2,r:ace?7:3};
+  assert.strictEqual(E.bid(bidder,'h',rd==1?2:1),true);const asked=[];
   while(E.G.ph=='f'){const c=E.G.cs;asked.push(c);E.answerFlip(c,false)}
   return asked};
- assert.deepStrictEqual(run(false,1),[2,3,0],'يُسأل الجميع بالترتيب ومنهم الموزع');
- assert.deepStrictEqual(run(true,2),[1],'على الآس: اللاعب الأول وحده');
- assert.deepStrictEqual(run(true,1),[],'على الآس والأول هو المشتري: لا أحد');
- console.log('16) الصن على الحكم (واستثناء الآس) ✓');
+ assert.deepStrictEqual(run(false,1),[2,3,0],'الدور الأول: يُسأل الجميع بالترتيب ومنهم الموزع');
+ assert.deepStrictEqual(run(true,2),[3,0,1],'الإكة: كل الباقين');
+ assert.deepStrictEqual(run(true,1,2),[2,3,0],'الإكة في الدور الثاني: كل الباقين أيضًا');
+ assert.deepStrictEqual(run(false,3,2),[0],'الدور الثاني وغير الإكة: من بعد المشتري فقط');
+ assert.deepStrictEqual(run(false,1,2),[2,3,0]);
+ assert.deepStrictEqual(run(false,2,2),[3,0]);
+ console.log('16) الصن على الحكم (الإكة والدور الثاني) ✓');
+}
+
+// ---------- 22) نافذة الحكم: من يحق له القلب صنًّا، و«قبلك» في الدور الثاني ----------
+{
+ const toV=(ace,rd,buyer)=>{const r=rig({seed:9});const E=r.E;[0,1,2,3].forEach(s=>E.setHuman(s,true));E.newGame();const G=E.G;
+  G.dealer=0;G.turn=buyer;G.rd=rd;G.cnt=0;G.fl={s:2,r:ace?7:3};E.bid(buyer,'h',rd==1?2:1);while(E.G.ph=='f')E.answerFlip(E.G.cs,false);r.adv(1700);return E};
+ const pk=(E,s)=>{const p=E.pending(s);return p&&p.k};
+ let E=toV(true,1,1);assert.strictEqual(E.G.ph,'v');
+ assert.notStrictEqual(pk(E,1),'toSun','الإكة: المشتري لا يقلبها');assert.strictEqual(pk(E,3),'toSun','شريكه يقلبها');
+ E=toV(false,2,3); // الدور الثاني وغير الإكة: المشتري مقعد 3 (ترتيبه الثالث) وشريكه مقعد 1 (قبله)
+ assert.strictEqual(pk(E,3),'toSun','المشتري يقلب حكمه');assert.notStrictEqual(pk(E,1),'toSun','من قبله لا يقلب');
+ E=toV(false,2,2);assert.strictEqual(pk(E,0),'toSun','الشريك بعد المشتري في الترتيب يقلب');
+ // «قبلك»
+ const sunAfter=(ace,rd)=>{const r=rig({seed:3});const E=r.E;[0,1,2,3].forEach(s=>E.setHuman(s,true));E.newGame();const G=E.G;
+  G.dealer=0;G.turn=2;G.rd=rd;G.cnt=1;G.ps=[0,1,0,0];G.fl={s:2,r:ace?7:3};E.bid(2,'s');return E.G.ph};
+ assert.strictEqual(sunAfter(false,1),'q','الدور الأول: يجوز قبلك');
+ assert.strictEqual(sunAfter(false,2),'d','الدور الثاني وغير الإكة: لا قبلك');
+ assert.strictEqual(sunAfter(true,2),'q','الإكة في الدور الثاني: يجوز قبلك');
+ console.log('22) قلب الحكم صنًّا وقبلك بحسب الدور والإكة ✓');
+}
+
+// ---------- 23) إكة المعلنة لا تكون في آخر أكلة ----------
+{
+ const r=rig({seed:4});const {E}=r;E.setHuman(0,true);E.newGame();const G=E.G,C=(s,r)=>({s,r});
+ G.ph='p';G.mode='h';G.tr=0;G.n=7;G.turn=0;G.t=[];G.h=[[C(1,6)],[C(1,0)],[C(1,1)],[C(1,2)]];G.pl=[[],[],[],[]];
+ assert.strictEqual(E.play(0,1*8+6,true),true);assert.strictEqual(G.ann,0,'لا إكة في آخر أكلة');
+ console.log('23) لا إكة في آخر أكلة ✓');
+}
+
+// ---------- 24) القيد لا يُنقذ فريقًا كان سيُكبَّت ----------
+{
+ const mk=(hands,tk,n,turn)=>{const r=rig({seed:5});const E=r.E;E.setHuman(0,true);E.newGame();const G=E.G;
+  G.ph='p';G.mode='s';G.tr=-1;G.m=1;G.t=[];G.n=n;G.tk=tk.slice();G.turn=turn;G.h=hands;G.pl=[[],[],[],[]];G.vio=[];G.pv=[[],[],[],[]];G.pk=[0,0,0,0];G.pj=[0,0,0,0];G.bl=[0,0,0,0];G.cl=0;G.ann=0;return {E,G}};
+ const C=(s,r)=>({s,r});
+ // الفريق 1 (المقعدان 1 و3) معه كل الأعلى، والفريق 0 لم يأكل شيئًا ولا يستطيع أن يأكل
+ const dead=()=>[[C(0,0),C(1,0),C(2,0),C(3,0),C(0,1)],[C(0,7),C(1,7),C(2,7),C(3,7),C(0,3)],[C(1,1),C(2,1),C(3,1),C(0,2),C(1,2)],[C(0,6),C(1,6),C(2,6),C(3,6),C(1,3)]];
+ let {E,G}=mk(dead(),[0,3],3,1);
+ assert.strictEqual(E._t.kabootForced(1),true,'كان سيُكبَّت');
+ E._t.qaidEnd(0,{k:'qaid',valid:1});
+ assert.strictEqual(G.res.info.k,'kaboot');assert.deepStrictEqual(G.res.p,[0,44],'كبوت الصن 44 بدل قيد 26');
+ // الفريق 0 معه آس واحد يأكل به أكلة: ليس كبوتًا فيصح القيد
+ const live=dead();live[0][0]=C(0,7);live[1][0]=C(0,5);
+ ({E,G}=mk(live,[0,3],3,1));
+ assert.strictEqual(E._t.kabootForced(1),false,'يستطيع أكل أكلة');
+ E._t.qaidEnd(0,{k:'qaid',valid:1});assert.deepStrictEqual(G.res.p,[26,0],'قيد عادي 26');
+ // أكل الفريق المقيِّد أكلة سابقة: ليس كبوتًا
+ ({E,G}=mk(dead(),[1,2],3,1));assert.strictEqual(E._t.kabootForced(1),false);
+ // بعد آخر أكلة (انتظار النتيجة) والفريق 1 أخذ الثمان: كبوت
+ ({E,G}=mk([[],[],[],[]],[0,8],8,1));G.ph='x';
+ assert.strictEqual(E._t.kabootForced(1),true);
+ // في الحكم: كبوت 25 بدل 16
+ ({E,G}=mk(dead(),[0,3],3,1));G.mode='h';G.tr=2;
+ E._t.qaidEnd(0,{k:'qaid',valid:1});assert.deepStrictEqual(G.res.p,[0,25],'كبوت الحكم 25 بدل قيد 16');
+ console.log('24) القيد لا يُنقذ من الكبوت ✓');
 }
 
 // ---------- 19) أشكل عند قلب الحكم: لمن يحق له قولها (الموزع أو من على يمينه في الدور الأول) ----------

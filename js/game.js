@@ -111,7 +111,7 @@ function qaidText(i){
 function resMsg(info){
  if(!info)return '';
  switch(info.k){
-  case 'kaboot':return 'كبوت!';
+  case 'kaboot':return info.qaid?'كبوت — القيد لا يُنقذ الفريق الذي كان سيُكبَّت':'كبوت!';
   case 'dbl':return DN[info.m-2]+(info.coffee?' وقهوة':'')+': '+tn(info.w)+' يربحون الجولة';
   case 'lost':return tn(info.b)+': المشتري خسر الجولة';
   case 'qaid':return qaidText(info)}

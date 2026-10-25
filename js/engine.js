@@ -178,7 +178,9 @@ function create(env){
   after(()=>{G.fly=null;changed()},1500);after(startPlay,2800)}
  // نافذة الحكم (ph 'v'): بعد شراء الحكم يستطيع الخصمان التدبيل، ويستطيع المشتري قلبه صنًّا أو تأكيده. الكل اختياري ويعتمد على السرعة:
  // التدبيل يقفل الحكم على المشتري، وقلبه صنًّا يُلغي تدبيل الحكم، وتُغلق النافذة بتوزيع بقية الأوراق (لا تدبيل بعد نزولها).
- function startV(){G.ph='v';G.cs=-1;G.vw={ans:[0,0,0,0],sch:[0,0,0,0]};changed();vSched()}
+ function startV(){G.ph='v';G.cs=-1;G.vw={ans:[0,0,0,0],sch:[0,0,0,0]};
+  for(let s=0;s<4;s++)if(s%2==G.buyer%2&&!sunAllowed(s,G.buyer))G.vw.ans[s]=1; // من لا يحق له القلب صنًّا لا يُسأل
+  changed();vSched()}
  function vSched(){
   if(!G||G.ph!='v'||!G.vw)return;
   for(let s=0;s<4;s++){
@@ -204,7 +206,13 @@ function create(env){
   G.vw=null;G.mode='s';G.tr=-1;G.cl=0;G.dst=0;G.dt=-1;G.m=1;G.ph='d';G.cs=-1;G.tag=['','','',''];G.tag[s]='صن';say(s,'اقلب صن');splash('صن!',2,'قلب الحكم');
   const b=s%2,o=1-b;if(S[b]>100&&S[o]<=100)dblNext();else dealRest();return true}
  function canAshSeat(i){return G.rd==1&&(i==G.dealer||i==(G.dealer+3)%4)}
- function flipCands(i){const f0=(G.dealer+1)%4;if(G.fl.r==7)return i==f0?[]:[f0];return [1,2,3].map(k=>(i+k)%4)} // بعد شراء أي لاعب للحكم يحق لكل الباقين (والموزع منهم) أخذها صنًّا أو قول بس. استثناء: إن كانت الورقة المكشوفة آسًا فلا يأخذها صنًّا إلا اللاعب الأول (وإن كان هو المشتري فلا أحد)
+ // ترتيب اللاعب في الدور (الأول = من على يسار الموزع)
+ const ordPos=x=>((x-(G.dealer+1))%4+4)%4;
+ // هل يحق للاعب s أن يقلب حكمًا اشتراه b صنًّا (وأشكل صن):
+ //  • الإكة في الأرض: لا يقلبه المشتري نفسه، ولبقية اللاعبين ذلك في الدورين.
+ //  • غير الإكة في الدور الأول: للجميع.  • غير الإكة في الدور الثاني: للمشتري ومن بعده في الترتيب فقط (لا لمن قبله).
+ function sunAllowed(s,b){const ace=G.fl.r==7;if(s==b)return !ace;if(ace||G.rd==1)return true;return ordPos(s)>ordPos(b)}
+ function flipCands(i){return [1,2,3].map(k=>(i+k)%4).filter(s=>sunAllowed(s,i))} // بعد شراء أي لاعب للحكم يحق لكل الباقين (والموزع منهم) أخذها صنًّا أو قول بس. استثناء: إن كانت الورقة المكشوفة آسًا فلا يأخذها صنًّا إلا اللاعب الأول (وإن كان هو المشتري فلا أحد)
  function flipNext(){
   if(!G.fq.length){G.nf=1;G.ph='b';bid(G.fb.i,'h',G.fb.s);G.nf=0;return}
   G.cs=G.fq.shift();changed();botTurn()}
@@ -212,7 +220,8 @@ function create(env){
   if(G.ph!='f'||G.cs!=c)return;
   if(y){G.ph='b';return bid(c,ash&&canAshSeat(c)?'a':'s')} // أشكل نوع من الصن: يجوز عند قلب الحكم لمن يحق له قوله في الدور الأول
   G.tag[c]='بس';G.ps[c]=1;say(c,'بس');flipNext()}
- function beforeCands(i){const f0=(G.dealer+1)%4,pi=((i-f0)%4+4)%4;return [0,1,2,3].filter(p=>p<pi).map(p=>(f0+p)%4).filter(x=>G.ps[x])}
+ function beforeCands(i){if(G.rd==2&&G.fl.r!=7)return []; // «قبلك» لا تُقال في الدور الثاني إلا إن كانت الإكة في الأرض
+  const f0=(G.dealer+1)%4,pi=((i-f0)%4+4)%4;return [0,1,2,3].filter(p=>p<pi).map(p=>(f0+p)%4).filter(x=>G.ps[x])}
  function qNext(){
   if(!G.bq.length){G.nq=1;G.ph='b';bid(G.sb,'s');G.nq=0;return}
   G.cs=G.bq.shift();changed();botTurn()}
@@ -249,7 +258,7 @@ function create(env){
   if(G.ph!='p'||G.t.length>3)return;
   const vio=violationOf(G.h[i],i,c);
   if(!G.t.length&&G.n==0)G.ld=i;
-  const ann=ak&&!G.t.length&&hk(),bad=ann&&(c.r==7||isT(c)||!isMaster(c));
+  const ann=ak&&!G.t.length&&hk()&&G.n<7,bad=ann&&(c.r==7||isT(c)||!isMaster(c));
   if(!G.t.length)G.ann=ann?1:0; // الإكة المعلنة على هذه الأكلة (تعفي الشريك القاطع من الدق)
   G.h[i].splice(G.h[i].indexOf(c),1);
   if(vio){vio.i=i;vio.c=c;G.vio.push(vio)}
@@ -333,10 +342,46 @@ function create(env){
  // G.qa: نافذة القيد المفتوحة (تُوقف اللعب عند الجميع). {by المقعد المقيِّد, auto: كشفه بوت, t النوع, pc الورقة المغشوش بها, rq الورقة المفروضة, p المتهم}
  // ـ طلب بشري: qaidOpen ثم qaidSet (الاختيارات) ثم qaidConfirm. يصحّ القيد إن طابق مخالفة مسجَّلة وإلا انقلب على صاحبه (falseFlip).
  // ـ كشف البوت: بعد اللعب تكشف البوتات مخالفات البشر (qaidAuto) وتظهر النافذة لغير المقيِّد حتى يضغط «متابعة» (qaidAck).
+ // هل كان الفريق u سيأكل كل الأكلات (كبوت) لو لم يُقيَّد عليه؟ يعني: لم يأكل خصمه أي أكلة حتى الآن، ولا يستطيع أن يأكل
+ // أي أكلة من الباقي مهما لعب (بحث كامل بالأوراق الحقيقية على قواعد اللعب).
+ function kabootForced(u){
+  const t=1-u;
+  if(G.tk[t]>0)return false;
+  if(G.n>=8||G.tk[u]>=8)return true;
+  const hs0=G.h.map(h=>h.slice()),svT=G.t,svA=G.ann,memo=new Map();let nodes=0,over=false;
+  const bit=c=>1<<(c.s*8+c.r),keyOf=hs=>hs.map(h=>h.reduce((m,c)=>m|bit(c),0)>>>0).join('.');
+  const rm=(hs,p,c)=>hs.map((h,j)=>j==p?h.filter(x=>x!==c):h);
+  const legalSim=(h,p,tb)=>{G.t=tb;G.ann=1;try{return legal(h,p)}finally{G.t=svT;G.ann=svA}};
+  const reduceOpts=(opts,hs,p,tb)=>{
+   const foreign=[];hs.forEach((h,j)=>{if(j!=p)foreign.push(...h)});tb.forEach(x=>foreign.push(x.c));
+   const out=[],by={};opts.forEach(c=>(by[c.s]=by[c.s]||[]).push(c));
+   for(const k in by){const a=by[k].sort((x,y)=>str(x)-str(y));let prev=null;
+    for(const c of a){if(prev&&!foreign.some(x=>x.s==c.s&&str(x)>str(prev)&&str(x)<str(c))){prev=c;continue}out.push(c);prev=c}}
+   return out};
+  const solve=(hs,leader)=>{
+   if(!hs[leader].length)return true;
+   const k=keyOf(hs)+'|'+leader;if(memo.has(k))return memo.get(k);
+   const r=trick(hs,[],leader);memo.set(k,r);return r};
+  const trick=(hs,tb,leader)=>{
+   if(++nodes>600000){over=true;return false}
+   if(tb.length==4){const L=tb[0].c.s,w=tb.reduce((a,b)=>val(b.c,L)>val(a.c,L)?b:a);return w.i%2==u&&solve(hs,w.i)}
+   const p=tb.length?(tb[tb.length-1].i+1)%4:leader;
+   const opts=reduceOpts(legalSim(hs[p],p,tb),hs,p,tb);
+   if(p%2==u){for(const c of opts.sort((x,y)=>str(y)-str(x))){if(trick(rm(hs,p,c),[...tb,{i:p,c}],leader))return true;if(over)return false}return false}
+   for(const c of opts){if(!trick(rm(hs,p,c),[...tb,{i:p,c}],leader))return false;if(over)return false}
+   return true};
+  try{
+   const cur=G.t.map(x=>({i:x.i,c:x.c}));
+   if(cur.length==4){const w=win();return w.i%2==u&&solve(hs0,w.i)}
+   const r=cur.length?trick(hs0,cur,0):solve(hs0,G.turn);
+   return !over&&r;
+  }finally{G.t=svT;G.ann=svA}}
  function qaidEnd(t,info){
   if(G.ph!='p'&&G.ph!='x')return;
   const m=G.m,p=[0,0],pa=[0,0],bl=[G.bl[0]/10,G.bl[1]/10];
   for(let i=0;i<4;i++)pa[i%2]+=pjP(i);
+  // القيد الصحيح لا يُنقذ فريقًا كان سيُكبَّت: إن كان الخصم سيأكل كل الأكلات لو لم يقيّد، فالنتيجة كبوت عليه
+  if(info&&info.valid&&kabootForced(1-t)){const w=1-t;p[w]=(hk()||m>1?25:44)+pa[w]+bl[w];splash('كبوت!',4);return fin(p,{k:'kaboot',w,qaid:1},w)}
   p[t]=(hk()?16:26)*m+(m==2?2:1)*pa[t]+bl[t];
   splash('قيد!',3);fin(p,info,t)}
  function qaidAuto(o,cb){
@@ -568,7 +613,7 @@ function create(env){
   stop(){RT++;paused=0;PQ=[];W=null;QK=null;if(G)G.sq++},
   // مساعدات للواجهة
   hk,isT,val,pts,legal,pnames,sawaOK,
-  _t:{endRound,violationOf,projOptions,isMaster,sawaOK,tune}  // للاختبارات فقط
+  _t:{endRound,violationOf,projOptions,isMaster,sawaOK,tune,kabootForced,qaidEnd}  // للاختبارات فقط
  }
 }
 
