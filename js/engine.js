@@ -179,7 +179,7 @@ function create(env){
  // نافذة الحكم (ph 'v'): بعد شراء الحكم يستطيع الخصمان التدبيل، ويستطيع المشتري قلبه صنًّا أو تأكيده. الكل اختياري ويعتمد على السرعة:
  // التدبيل يقفل الحكم على المشتري، وقلبه صنًّا يُلغي تدبيل الحكم، وتُغلق النافذة بتوزيع بقية الأوراق (لا تدبيل بعد نزولها).
  function startV(){G.ph='v';G.cs=-1;G.vw={ans:[0,0,0,0],sch:[0,0,0,0]};
-  for(let s=0;s<4;s++)if(s%2==G.buyer%2&&!sunAllowed(s,G.buyer))G.vw.ans[s]=1; // من لا يحق له القلب صنًّا لا يُسأل
+  for(let s=0;s<4;s++)if(s%2==G.buyer%2&&(s!=G.buyer||!sunAllowed(s,s)))G.vw.ans[s]=1; // لا يُسأل هنا إلا المشتري (وليس مع الإكة)؛ شريكه سُئل «صن أو بس» قبلًا
   changed();vSched()}
  function vSched(){
   if(!G||G.ph!='v'||!G.vw)return;
@@ -189,7 +189,7 @@ function create(env){
    after(()=>{if(!G||G.ph!='v'||!G.vw)return;G.vw.sch[s]=0;if(!G.vw.ans[s]&&!humans[s])botV(s)},900+rnd()*1900)}}
  function botV(s){
   const h=G.h[s];
-  if(s%2==G.buyer%2)vSun(s,h.reduce((a,c)=>a+(c.r==7?3:c.r==3?1:0),0)>=6&&rnd()<(s==G.buyer?.4:.25));
+  if(s==G.buyer)vSun(s,h.reduce((a,c)=>a+(c.r==7?3:c.r==3?1:0),0)>=6&&rnd()<.4);
   else vDbl(s,rnd()<hs(h,G.tr)/12*.9)}
  function vClose(){
   const v=G.vw,b=G.buyer;
@@ -200,9 +200,8 @@ function create(env){
   if(!y){v.ans[s]=1;G.tag[s]='بس';say(s,'بس');vClose();return true}
   G.vw=null;G.ph='d';doDouble(s,cl);G.dst++;dblNext();return true}
  function vSun(s,y){
-  const v=G.vw;if(G.ph!='v'||!v||s%2!=G.buyer%2||v.ans[s])return false; // المشتري وشريكه كلاهما يقلب صنًّا
-  if(!y){const w=s==G.buyer?'تأكيد الحكم':'بس';v.ans[s]=1;G.tag[s]=w;say(s,w);vClose();return true}
-  G.buyer=s;
+  const v=G.vw;if(G.ph!='v'||!v||s!=G.buyer||v.ans[s])return false;
+  if(!y){v.ans[s]=1;G.tag[s]='تأكيد الحكم';say(s,'تأكيد الحكم');vClose();return true}
   G.vw=null;G.mode='s';G.tr=-1;G.cl=0;G.dst=0;G.dt=-1;G.m=1;G.ph='d';G.cs=-1;G.tag=['','','',''];G.tag[s]='صن';say(s,'اقلب صن');splash('صن!',2,'قلب الحكم');
   const b=s%2,o=1-b;if(S[b]>100&&S[o]<=100)dblNext();else dealRest();return true}
  function canAshSeat(i){return G.rd==1&&(i==G.dealer||i==(G.dealer+3)%4)}
@@ -554,7 +553,7 @@ function create(env){
   if(G.ph=='q'&&G.cs==seat)return {k:'before',rd:G.rd};
   if(G.ph=='f'&&G.cs==seat)return {k:'flip',canAsh:canAshSeat(seat)};
   if(G.ph=='d'&&G.cs==seat){const st=G.dst;return {k:'double',st,n:DN[st],two:hk()&&(st==0||st==2)}}
-  if(G.ph=='v'&&G.vw&&!G.vw.ans[seat]){if(seat%2==G.buyer%2)return {k:'toSun',buyer:seat==G.buyer};if(seat%2!=G.buyer%2)return {k:'double',st:0,n:DN[0],two:true}}
+  if(G.ph=='v'&&G.vw&&!G.vw.ans[seat]){if(seat==G.buyer)return {k:'toSun'};if(seat%2!=G.buyer%2)return {k:'double',st:0,n:DN[0],two:true}}
   if(needLay(seat))return {k:'lay',want:G.pv[seat].slice()};
   if(G.ph=='p'&&G.turn==seat&&G.t.length<4)return {k:'play',legal:legal(G.h[seat],seat).map(idc)};
   return null}
