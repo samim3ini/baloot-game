@@ -1,15 +1,15 @@
 // الواجهة: الرسم والأصوات وتغيير شكل الأوراق والمساعدة
 function log(){}
-const BIDW=/^(بس|ولا|صن|حكم|أشكل|قبلك|دبل|ثري|فور|قهوة)/;
+const BIDW=/^(بس|ولا|صن|حكم|أشكل|قبلك|دبل|ثري|فور|قهوة|تأكيد|اقلب|يقلب)/;
 function say(i,m){
  if(i>=0&&BIDW.test(m))return;
  if(i>=0&&m=='إكة'){ekka(i);return} // الإكة: وسم كبير عند اللاعب بدل النص الصغير
  const e=$('msg');e.textContent=(i>=0?NM[i]+': ':'')+m;e.classList.add('show');clearTimeout(mt);mt=setTimeout(()=>e.classList.remove('show'),1800)}
-const SKIN={},ck=c=>RK[c.r]+SUL[c.s],IMGS=[];let UP={};
+const SKIN={},ck=c=>RK[c.r]+SUL[c.s],IMGS=[];let UP={},SKW=true; // SKW: ننتظر تحميل صور الأوراق قبل أول رسم (يمنع ظهور الشكل الافتراضي لحظة تحديث الصفحة)
 function card(c,k='',st=''){if(!c)return `<div class="cd bkcard ${k}" style="${st}"></div>`;const r=c.r,s=SU[c.s],u=SKIN[ck(c)];
  if(u)return `<div class="cd sk ${k}" style="background-image:url('${u}');${st}"></div>`;
  const cr=`<i>${RK[r]}</i><b>${s}</b>`;
- return `<div class="cd ${RED(c)?'rd':''} ${k}" style="${st}"><span class="cr">${cr}</span><span class="cr b">${cr}</span><span class="cm"><i>${RK[r]}</i><b>${s}</b></span></div>`}
+ return `<div class="cd ${RED(c)?'rd':''} ${SKW?'skw':''} ${k}" style="${st}"><span class="cr">${cr}</span><span class="cr b">${cr}</span><span class="cm"><i>${RK[r]}</i><b>${s}</b></span></div>`}
 const RUGSVG=`<svg viewBox="0 0 400 240" preserveAspectRatio="none"><defs><pattern id="dt" width="16" height="16" patternUnits="userSpaceOnUse"><rect width="16" height="16" fill="#e9cf96"/><circle cx="8" cy="8" r="4.6" fill="#cf3a24"/><circle cx="8" cy="8" r="1.8" fill="#f3dca4"/></pattern><pattern id="zg" width="36" height="22" patternUnits="userSpaceOnUse"><rect width="36" height="22" fill="#b3302b"/><path d="M0 22L18 3L36 22Z" fill="#d89a2b"/><path d="M0 0L18 19L36 0Z" fill="#2f7a5a"/></pattern><pattern id="sp" width="8" height="40" patternUnits="userSpaceOnUse"><rect width="8" height="40" fill="#b3302b"/><rect y="6" width="8" height="2" fill="#e0574c"/><rect y="20" width="8" height="3" fill="#4b3a86"/><circle cx="4" cy="33" r="1.4" fill="#2f7a5a"/></pattern></defs><rect width="400" height="240" fill="url(#dt)"/><rect x="14" y="14" width="372" height="212" fill="#7d221f"/><rect x="18" y="18" width="364" height="204" fill="url(#sp)"/><rect x="18" y="50" width="364" height="22" fill="url(#zg)"/><rect x="18" y="168" width="364" height="22" fill="url(#zg)"/><rect x="18" y="108" width="364" height="22" fill="url(#zg)" opacity=".85"/></svg>`;
 function applySkin(){
  document.documentElement.style.setProperty('--back',SKIN.back?`url('${SKIN.back}')`:'none');
@@ -17,9 +17,15 @@ function applySkin(){
  $('stage').style.backgroundImage=SKIN.table?`url('${SKIN.table}')`:'';
  if(G)render()}
 const idb=(m,v)=>new Promise(res=>{try{const q=indexedDB.open('baloot-skin',1);q.onupgradeneeded=()=>q.result.createObjectStore('f');q.onsuccess=()=>{const st=q.result.transaction('f',m=='get'?'readonly':'readwrite').objectStore('f'),r=m=='get'?st.get('skin'):m=='set'?st.put(v,'skin'):st.delete('skin');r.onsuccess=()=>res(r.result);r.onerror=()=>res()};q.onerror=()=>res()}catch(e){res()}});
+function skinDone(){if(SKW){SKW=false;UI.hk=null;applySkin()}}
 function loadSkin(){
- ALLK.forEach(k=>{const t=n=>{const im=new Image();IMGS.push(im);im.onload=()=>{if(!UP[k]){SKIN[k]=im.src;applySkin()}};if(n<1)im.onerror=()=>t(n+1);im.src=CARD_DIR+(n?k.toLowerCase():k)+'.'+CARD_EXT;if(im.decode)im.decode().catch(()=>{})};t(0)});
- idb('get').then(o=>{if(o){UP=o;Object.assign(SKIN,o);applySkin()}})}
+ let pend=ALLK.length+1;const fin=()=>{if(--pend<=0)skinDone()};
+ setTimeout(skinDone,3500); // أقصى انتظار إن تعذّر تحميل بعض الصور
+ ALLK.forEach(k=>{const t=n=>{const im=new Image();IMGS.push(im);
+  im.onload=()=>{if(!UP[k])SKIN[k]=im.src;const d=im.decode?im.decode().catch(()=>{}):Promise.resolve();d.then(()=>{if(SKW)fin();else applySkin()})};
+  im.onerror=()=>{if(n<1)t(n+1);else if(SKW)fin()};
+  im.src=CARD_DIR+(n?k.toLowerCase():k)+'.'+CARD_EXT};t(0)});
+ idb('get').then(o=>{if(o){UP=o;Object.assign(SKIN,o)}if(SKW)fin();else if(o)applySkin()})}
 let OVP=null;
 function ovOpen(h){OVP=$('ov').style.display=='flex'?$('ovb').innerHTML:null;$('ovb').innerHTML=h;$('ov').style.display='flex'}
 function ovClose(){if(OVP){$('ovb').innerHTML=OVP;OVP=null}else $('ov').style.display='none'}
@@ -87,6 +93,7 @@ function render(){
 // القياس على 8 أوراق وهمية مؤقتة (الأوراق الحقيقية لا تُلمس)، فيبقى الحجم ثابتًا طوال الجولة.
 const HS_MAX=1.5,HS_MIN=.8,OVS=[.36,.42,.48,.54,.60,.66]; // OVS: التراكب من الأكثر تفريقًا إلى الأكثر تقاربًا
 function fitHand(){
+ if(typeof UI==='undefined'||typeof G==='undefined'||!G)return; // قد يصل إشعار تغيّر الحجم قبل اكتمال تحميل بقية الملفات
  const h=document.getElementById('hand'),mid=document.getElementById('mid'),bar=document.getElementById('bar'),st=document.getElementById('stage');
  if(!h||!mid||!bar||!st)return;
  const sr=st.getBoundingClientRect(),br=bar.getBoundingClientRect(),mr=mid.getBoundingClientRect();
@@ -137,21 +144,20 @@ function qDots(i){const k=['b','r','t','l'][(i-ME+4)%4];return `<span class="qdo
 function qSlot(c,cls,fn,lbl){return `<div class="qc ${cls}"${fn?` onclick="${fn}"`:''} style="--rr:${((jit(c,1)-.5)*7).toFixed(1)}deg">${card(c)}${lbl?`<small>${lbl}</small>`:''}</div>`}
 // هل تُنقر هذه الورقة الآن (وضع المقيِّد)؟ الورقة المحددة تُنقر لإلغائها. اليد المتبقية لا تُنقر إلا لاختيار «الورقة المفروضة» من يد المتهم.
 function qCan(id,o,hand){
- const q=G.qa;if(!qMine(q)||q.t=='sawa'||q.t=='proj'||o%2==ME%2)return false;
+ const q=G.qa;if(!qMine(q)||q.t=='sawa'||q.t=='proj')return false;
  if(id==q.pc||id==q.rq)return true;
- if(hand)return q.pc>=0&&qNeedR(q.t)&&o==qOwn(q.pc);
+ if(hand)return q.pc>=0&&qNeedR(q.t); // كل أيدي اللاعبين تُنقر بالتساوي (لا تظليل يكشف صاحب الورقة)
  return true}
 function qSt(id,o,hand){
  const q=G.qa;let c=id==q.pc?'bad ':id==q.rq?'ok ':'';
- if(!qMine(q))return c;
- if(qCan(id,o,hand))c+='pk ';
- else if(hand?(q.pc>=0&&qNeedR(q.t)&&o!=qOwn(q.pc)):true)c+='dm ';
+ if(qMine(q)&&qCan(id,o,hand))c+='pk '; // بلا أي تظليل: كل الأوراق بارزة بالتساوي
  return c}
 function qPick(id,o,hand){
  const q=G.qa;if(!qMine(q)||!qCan(id,o,hand))return;
  let pc=q.pc,rq=q.rq;
  if(id==pc){pc=-1;rq=-1}
  else if(id==rq)rq=-1;
+ else if(hand)rq=id; // أوراق الأيدي لا تكون إلا «الورقة التي كان يجب لعبها»
  else if(pc<0)pc=id;
  else if(o!=qOwn(pc)){pc=id;rq=-1}
  else if(qNeedR(q.t))rq=id;

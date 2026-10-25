@@ -182,24 +182,25 @@ function create(env){
  function vSched(){
   if(!G||G.ph!='v'||!G.vw)return;
   for(let s=0;s<4;s++){
-   if(s==(G.buyer+2)%4||G.vw.ans[s]||humans[s]||G.vw.sch[s])continue;
+   if(G.vw.ans[s]||humans[s]||G.vw.sch[s])continue;
    G.vw.sch[s]=1;
    after(()=>{if(!G||G.ph!='v'||!G.vw)return;G.vw.sch[s]=0;if(!G.vw.ans[s]&&!humans[s])botV(s)},900+rnd()*1900)}}
  function botV(s){
   const h=G.h[s];
-  if(s==G.buyer)vSun(s,h.reduce((a,c)=>a+(c.r==7?3:c.r==3?1:0),0)>=6&&rnd()<.4);
+  if(s%2==G.buyer%2)vSun(s,h.reduce((a,c)=>a+(c.r==7?3:c.r==3?1:0),0)>=6&&rnd()<(s==G.buyer?.4:.25));
   else vDbl(s,rnd()<hs(h,G.tr)/12*.9)}
  function vClose(){
   const v=G.vw,b=G.buyer;
-  if(v.ans[b]&&[0,1,2,3].every(s=>s%2==b%2||v.ans[s])){G.vw=null;return dealRest()}
+  if([0,1,2,3].every(s=>v.ans[s])){G.vw=null;return dealRest()}
   changed()}
  function vDbl(s,y,cl){
   const v=G.vw;if(G.ph!='v'||!v||s%2==G.buyer%2||v.ans[s])return false;
   if(!y){v.ans[s]=1;G.tag[s]='بس';say(s,'بس');vClose();return true}
   G.vw=null;G.ph='d';doDouble(s,cl);G.dst++;dblNext();return true}
  function vSun(s,y){
-  const v=G.vw;if(G.ph!='v'||!v||s!=G.buyer||v.ans[s])return false;
-  if(!y){v.ans[s]=1;G.tag[s]='تأكيد الحكم';say(s,'تأكيد الحكم');vClose();return true}
+  const v=G.vw;if(G.ph!='v'||!v||s%2!=G.buyer%2||v.ans[s])return false; // المشتري وشريكه كلاهما يقلب صنًّا
+  if(!y){const w=s==G.buyer?'تأكيد الحكم':'بس';v.ans[s]=1;G.tag[s]=w;say(s,w);vClose();return true}
+  G.buyer=s;
   G.vw=null;G.mode='s';G.tr=-1;G.cl=0;G.dst=0;G.dt=-1;G.m=1;G.ph='d';G.cs=-1;G.tag=['','','',''];G.tag[s]='صن';say(s,'اقلب صن');splash('صن!',2,'قلب الحكم');
   const b=s%2,o=1-b;if(S[b]>100&&S[o]<=100)dblNext();else dealRest();return true}
  function canAshSeat(i){return G.rd==1&&(i==G.dealer||i==(G.dealer+3)%4)}
@@ -253,7 +254,7 @@ function create(env){
   G.h[i].splice(G.h[i].indexOf(c),1);
   if(vio){vio.i=i;vio.c=c;G.vio.push(vio)}
   if(bad)G.vio.push({type:'ace',i,c,leg:[]});
-  if(G.n==0&&!G.fd[i]){G.fd[i]=1;if(humans[i]&&!G.dc[i])setProj(i,null);if(!humans[i]&&G.pj[i]){G.dd[i]=1;G.tag[i]=pnames(i)}}
+  if(G.n==0&&!G.fd[i]){G.fd[i]=1;if(humans[i]){if(!G.dc[i])setProj(i,null);else if(G.pv[i].length){G.dd[i]=1;G.tag[i]=pnames(i)}}else if(G.pj[i]){G.dd[i]=1;G.tag[i]=pnames(i)}} // الإعلان يظهر مع رمي أول ورقة
   if(hk()&&c.s==G.tr&&(c.r==5||c.r==6)&&!(G.pj[i]==100&&G.pk[i]%100<10&&(G.pk[i]%10==5||G.pk[i]%10==6))&&G.pl[i].some(x=>x.s==c.s&&(x.r==5||x.r==6)&&x.r!=c.r)){G.bl[i%2]+=20;say(i,'بلوت!');splash('بلوت!',1)}
   G.pl[i].push(c);G.t.push({i,c});
   if(G.n==1&&!G.rv[i]&&G.pv[i].length&&G.pw==i%2)autoLay(i); // لا ينزل مشروعه إلا الفريق الأقوى
@@ -368,9 +369,9 @@ function create(env){
   if(!(noCard||(q.t&&q.pc>=0&&(!nr||q.rq>=0))))return false;
   const pv=q.t=='proj'?G.vio.find(x=>x.type=='proj'&&!x.done&&x.i%2!=seat%2):null;
   const p=q.t=='sawa'?(seat+1)%4:q.t=='proj'?(pv?pv.i:(seat+1)%4):G.pl.findIndex(l=>l.some(c=>idc(c)==q.pc));
-  if(p<0||p%2==seat%2)return false;
+  if(p<0)return false;
   const type=q.t,pid=noCard?-1:q.pc,rid=noCard?-1:q.rq;
-  const v=type=='proj'?pv:G.vio.find(x=>x.i==p&&x.type==type&&!x.done&&idc(x.c)==pid&&(type=='ace'||x.leg.includes(rid)));
+  const v=p%2==seat%2?null:type=='proj'?pv:G.vio.find(x=>x.i==p&&x.type==type&&!x.done&&idc(x.c)==pid&&(type=='ace'||x.leg.includes(rid)));
   const info=ok=>({k:'qaid',type,p,by:seat,pid,rid,valid:ok,auto:0});
   G.qa=null;
   if(v){v.done=1;resume(1);qaidEnd(seat%2,info(1));return true}
@@ -508,7 +509,7 @@ function create(env){
   if(G.ph=='q'&&G.cs==seat)return {k:'before',rd:G.rd};
   if(G.ph=='f'&&G.cs==seat)return {k:'flip',canAsh:canAshSeat(seat)};
   if(G.ph=='d'&&G.cs==seat){const st=G.dst;return {k:'double',st,n:DN[st],two:hk()&&(st==0||st==2)}}
-  if(G.ph=='v'&&G.vw&&!G.vw.ans[seat]){if(seat==G.buyer)return {k:'toSun'};if(seat%2!=G.buyer%2)return {k:'double',st:0,n:DN[0],two:true}}
+  if(G.ph=='v'&&G.vw&&!G.vw.ans[seat]){if(seat%2==G.buyer%2)return {k:'toSun',buyer:seat==G.buyer};if(seat%2!=G.buyer%2)return {k:'double',st:0,n:DN[0],two:true}}
   if(needLay(seat))return {k:'lay',want:G.pv[seat].slice()};
   if(G.ph=='p'&&G.turn==seat&&G.t.length<4)return {k:'play',legal:legal(G.h[seat],seat).map(idc)};
   return null}
@@ -548,7 +549,7 @@ function create(env){
    G.dc[seat]=1;G.dd[seat]=1;
    G.pv[seat]=want.slice().sort((a,b)=>b-a);G.pcd[seat]=o?o.items.map(x=>x.cards):[];
    G.pk[seat]=o?o.k:Math.max(...want)*100;G.pj[seat]=Math.floor(G.pk[seat]/100);
-   G.tag[seat]=pnames(seat);changed();return true},
+   changed();return true}, // يظهر الإعلان عند مقعدك حين ترمي أول ورقة لا حين تحدده
   lay,
   sawa(seat){return live(seat)?sawa(seat):false},
   qaidOpen,qaidSet,qaidConfirm,qaidAck,

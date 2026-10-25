@@ -578,3 +578,6 @@ body.onl #emb{display:none}
  #side .st .v{justify-content:center;gap:40px;width:100%;box-sizing:border-box}
  #side #info{flex:1 1 0;min-width:0}
 }
+
+/* أوراق بلا صور بعد: مخفية حتى تنتهي مرحلة تحميل الصور فلا يظهر الشكل الافتراضي */
+.cd.skw{opacity:0}

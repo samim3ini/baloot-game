@@ -45,7 +45,7 @@ function renderAct(cak){
  else if(ph=='q'&&p)h=`<button class="bn" onclick="aQ(1)">قبلك</button><button class="bp" onclick="aQ(0)">${p.rd==1?'بس':'ولا'}</button>`;
  else if(ph=='f'&&p)h=`<button class="bn" onclick="aF(1)">صن ☀</button>${p.canAsh?`<button class="ba" onclick="aF(1,1)">أشكل</button>`:''}<button class="bp" onclick="aF(0)">بس</button>`;
  else if((ph=='d'||ph=='v')&&p&&p.k=='double'){const n=p.n;h=(p.two?`<button class="bh" onclick="aD(1,0)">${n} مفتوح</button><button class="ba" onclick="aD(1,1)">${n} مقفل</button>`:`<button class="bh" onclick="aD(1,0)">${n}</button>`)+`<button class="bp" onclick="aD(0)">بس</button>`}
- else if(ph=='v'&&p&&p.k=='toSun')h=`<button class="bn" onclick="aW(1)">اقلب صن ☀</button><button class="bh" onclick="aW(0)">تأكيد الحكم</button>`;
+ else if(ph=='v'&&p&&p.k=='toSun')h=`<button class="bn" onclick="aW(1)">اقلب صن ☀</button><button class="bh" onclick="aW(0)">${p.buyer?'تأكيد الحكم':'بس'}</button>`;
  else if(ph=='x')h=`<button id="qb" onclick="qaidUI()">قيد</button>`; // يمكن القيد أثناء انتظار النتيجة
  else if(ph=='p'){
   const dcl=G.n==0&&!G.dc[ME]&&!G.fd[ME]; // الزر ثابت دائمًا قبل لعب أول ورقة (فلا يكشف أن معك مشروعًا)

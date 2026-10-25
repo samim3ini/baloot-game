@@ -237,7 +237,7 @@ function checkRound(E,label){
  G.ph='p';G.mode='h';G.tr=0;G.n=0;G.turn=0;G.t=[];G.fd={};G.dc=[0,0,0,0];
  G.h[0]=[C(1,0),C(1,1),C(1,2),C(2,3),C(2,5),C(3,3),C(3,5),C(0,4)];G.po[0]=E._t.projOptions(G.h[0]);
  assert.strictEqual(E.project(0,[50,50]),true,'إعلان كاذب مسموح');
- assert.deepStrictEqual(G.pv[0],[50,50]);assert.strictEqual(G.dd[0],1);assert(G.tag[0].includes('خمسين'));
+ assert.deepStrictEqual(G.pv[0],[50,50]);assert.strictEqual(G.tag[0],'','لا يظهر الإعلان قبل رمي الورقة');
  assert.strictEqual(E.project(0,[20]),false,'لا إعلان ثانٍ');
  G.n=1;G.pw=0;G.turn=0;G.t=[];G.rv[0]=0;G.pl[0]=[C(1,3)];
  assert.strictEqual(E.pending(0).k,'lay');assert.strictEqual(E.play(0,G.h[0][0].s*8+G.h[0][0].r,false),false,'لا لعب قبل الإنزال');
@@ -432,6 +432,28 @@ function checkRound(E,label){
  assert.strictEqual(ev.cards.length,2,'لا تظهر الورقة المرمية');
  assert(!ev.cards.some(c=>c.s==1&&c.r==0));
  console.log('20) إنزال الباقي من المشروع دون كشف الورقة المرمية ✓');
+}
+
+// ---------- 21) الإعلان يظهر عند رمي أول ورقة، وشريك المشتري يقلب الحكم صنًّا في نافذة الحكم ----------
+{
+ let r=rig({seed:4});let E=r.E;E.setHuman(0,true);E.newGame();let G=E.G;const C=(s,r)=>({s,r});
+ G.ph='p';G.mode='h';G.tr=0;G.n=0;G.turn=0;G.t=[];G.fd={};G.dc=[0,0,0,0];G.tag=['','','',''];
+ G.h[0]=[C(1,0),C(1,1),C(1,2),C(2,3),C(2,5),C(3,3),C(3,5),C(0,4)];G.po[0]=E._t.projOptions(G.h[0]);
+ assert.strictEqual(E.project(0,[20]),true);assert.strictEqual(G.tag[0],'');
+ assert.strictEqual(E.play(0,3*8+3,false),true);
+ assert(G.tag[0].includes('سرا'),'يظهر الإعلان عند رمي أول ورقة');
+ // نافذة الحكم: المشتري مقعد 1 وشريكه مقعد 3
+ const toV=()=>{const r=rig({seed:9});const E=r.E;[0,1,2,3].forEach(s=>E.setHuman(s,true));E.newGame();const G=E.G;
+  G.dealer=0;G.turn=1;G.rd=1;G.cnt=0;G.fl={s:2,r:3};E.bid(1,'h',2);while(E.G.ph=='f')E.answerFlip(E.G.cs,false);r.adv(1700);return E};
+ E=toV();
+ assert.strictEqual(E.G.ph,'v');
+ assert.strictEqual(E.pending(3).k,'toSun','الشريك يرى خيار الصن');assert.strictEqual(E.pending(3).buyer,false);assert.strictEqual(E.pending(1).buyer,true);
+ assert.strictEqual(E.answerSun(3,true),true);
+ assert.strictEqual(E.G.mode,'s','تحوّل صنًّا');assert.strictEqual(E.G.buyer,3);
+ // وإن قال الشريك بس: تبقى النافذة حتى يجيب الجميع
+ E=toV();E.answerSun(1,false);E.answerDouble(0,false);E.answerDouble(2,false);
+ assert.strictEqual(E.G.ph,'v','ننتظر الشريك');E.answerSun(3,false);assert.notStrictEqual(E.G.ph,'v');assert.strictEqual(E.G.mode,'h');
+ console.log('21) إعلان المشروع عند الرمي وصن الشريك في نافذة الحكم ✓');
 }
 
 // ---------- 17) بلاغ المستخدم: الشريك قاد ورقة ليست آسًا بلا إكة فعلى القاطع الدق ولو كان شريكه رابحًا حاليًا ----------
