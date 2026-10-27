@@ -220,13 +220,14 @@ function create(env){
   if(y){G.ph='b';return bid(c,ash&&canAshSeat(c)?'a':'s')} // أشكل نوع من الصن: يجوز عند قلب الحكم لمن يحق له قوله في الدور الأول
   G.tag[c]='بس';G.ps[c]=1;say(c,'بس');flipNext()}
  function beforeCands(i){if(G.rd==2&&G.fl.r!=7)return []; // «قبلك» لا تُقال في الدور الثاني إلا إن كانت الإكة في الأرض
-  const f0=(G.dealer+1)%4,pi=((i-f0)%4+4)%4;return [0,1,2,3].filter(p=>p<pi).map(p=>(f0+p)%4).filter(x=>G.ps[x])}
+  // سلسلة: لا يقولها إلا اللاعب الذي قبل صاحب الصن مباشرةً، فإن قالها جاز لمن قبله أن يقولها له، وهكذا
+  const f0=(G.dealer+1)%4,pi=((i-f0)%4+4)%4;if(!pi)return [];const x=(f0+pi-1)%4;return G.ps[x]?[x]:[]}
  function qNext(){
   if(!G.bq.length){G.nq=1;G.ph='b';bid(G.sb,'s');G.nq=0;return}
   G.cs=G.bq.shift();changed();botTurn()}
  function ansQ(c,y){
   if(G.ph!='q'||G.cs!=c)return;
-  if(y){say(c,'قبلك');G.ph='b';G.nq=1;bid(c,'s');G.nq=0;return}
+  if(y){G.tag[c]='قبلك';say(c,'قبلك');G.sb=c;const qc=beforeCands(c);if(qc.length){G.bq=qc;return qNext()}G.ph='b';G.nq=1;bid(c,'s');G.nq=0;return}
   const pw=G.rd==1?'بس':'ولا';G.tag[c]=pw;say(c,pw);qNext()}
 
  // ===== الدبل =====
@@ -262,7 +263,7 @@ function create(env){
   G.h[i].splice(G.h[i].indexOf(c),1);
   if(vio){vio.i=i;vio.c=c;G.vio.push(vio)}
   if(bad)G.vio.push({type:'ace',i,c,leg:[]});
-  if(G.n==0&&!G.fd[i]){G.fd[i]=1;if(humans[i]){if(!G.dc[i])setProj(i,null);else if(G.pv[i].length){G.dd[i]=1;G.tag[i]=pnames(i)}}else if(G.pj[i]){G.dd[i]=1;G.tag[i]=pnames(i)}} // الإعلان يظهر مع رمي أول ورقة
+  if(G.n==0&&!G.fd[i]){G.fd[i]=1;if(humans[i]){if(!G.dc[i])setProj(i,null);else if(G.pv[i].length){G.dd[i]=1;G.tag[i]=pnames(i);say(i,G.tag[i])}}else if(G.pj[i]){G.dd[i]=1;G.tag[i]=pnames(i);say(i,G.tag[i])}} // الإعلان يظهر مع رمي أول ورقة
   if(hk()&&c.s==G.tr&&(c.r==5||c.r==6)&&!(G.pj[i]==100&&G.pk[i]%100<10&&(G.pk[i]%10==5||G.pk[i]%10==6))&&G.pl[i].some(x=>x.s==c.s&&(x.r==5||x.r==6)&&x.r!=c.r)){G.bl[i%2]+=20;say(i,'بلوت!');splash('بلوت!',1)}
   G.pl[i].push(c);G.t.push({i,c});
   if(G.n==1&&!G.rv[i]&&G.pv[i].length&&G.pw==i%2)autoLay(i); // لا ينزل مشروعه إلا الفريق الأقوى

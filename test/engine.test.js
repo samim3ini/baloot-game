@@ -406,10 +406,9 @@ function checkRound(E,label){
   G.dealer=0;G.turn=buyer;G.rd=rd;G.cnt=0;G.fl={s:2,r:ace?7:3};E.bid(buyer,'h',rd==1?2:1);while(E.G.ph=='f')E.answerFlip(E.G.cs,false);r.adv(1700);return E};
  const pk=(E,s)=>{const p=E.pending(s);return p&&p.k};
  let E=toV(true,1,1);assert.strictEqual(E.G.ph,'v');
- assert.notStrictEqual(pk(E,1),'toSun','الإكة: المشتري لا يقلبها');assert.strictEqual(pk(E,3),'toSun','شريكه يقلبها');
+ assert.notStrictEqual(pk(E,1),'toSun','الإكة: المشتري لا يقلبها');assert.notStrictEqual(pk(E,3),'toSun','والشريك لا خيار له في هذه النافذة');
  E=toV(false,2,3); // الدور الثاني وغير الإكة: المشتري مقعد 3 (ترتيبه الثالث) وشريكه مقعد 1 (قبله)
- assert.strictEqual(pk(E,3),'toSun','المشتري يقلب حكمه');assert.notStrictEqual(pk(E,1),'toSun','من قبله لا يقلب');
- E=toV(false,2,2);assert.strictEqual(pk(E,0),'toSun','الشريك بعد المشتري في الترتيب يقلب');
+ assert.strictEqual(pk(E,3),'toSun','المشتري يقلب حكمه');assert.notStrictEqual(pk(E,1),'toSun','وشريكه لا');
  // «قبلك»
  const sunAfter=(ace,rd)=>{const r=rig({seed:3});const E=r.E;[0,1,2,3].forEach(s=>E.setHuman(s,true));E.newGame();const G=E.G;
   G.dealer=0;G.turn=2;G.rd=rd;G.cnt=1;G.ps=[0,1,0,0];G.fl={s:2,r:ace?7:3};E.bid(2,'s');return E.G.ph};
@@ -491,7 +490,7 @@ function checkRound(E,label){
  console.log('20) إنزال الباقي من المشروع دون كشف الورقة المرمية ✓');
 }
 
-// ---------- 21) الإعلان يظهر عند رمي أول ورقة، وشريك المشتري يقلب الحكم صنًّا في نافذة الحكم ----------
+// ---------- 21) الإعلان يظهر عند رمي أول ورقة، ونافذة الحكم للمشتري وحده ----------
 {
  let r=rig({seed:4});let E=r.E;E.setHuman(0,true);E.newGame();let G=E.G;const C=(s,r)=>({s,r});
  G.ph='p';G.mode='h';G.tr=0;G.n=0;G.turn=0;G.t=[];G.fd={};G.dc=[0,0,0,0];G.tag=['','','',''];
@@ -504,13 +503,26 @@ function checkRound(E,label){
   G.dealer=0;G.turn=1;G.rd=1;G.cnt=0;G.fl={s:2,r:3};E.bid(1,'h',2);while(E.G.ph=='f')E.answerFlip(E.G.cs,false);r.adv(1700);return E};
  E=toV();
  assert.strictEqual(E.G.ph,'v');
- assert.strictEqual(E.pending(3).k,'toSun','الشريك يرى خيار الصن');assert.strictEqual(E.pending(3).buyer,false);assert.strictEqual(E.pending(1).buyer,true);
- assert.strictEqual(E.answerSun(3,true),true);
- assert.strictEqual(E.G.mode,'s','تحوّل صنًّا');assert.strictEqual(E.G.buyer,3);
- // وإن قال الشريك بس: تبقى النافذة حتى يجيب الجميع
- E=toV();E.answerSun(1,false);E.answerDouble(0,false);E.answerDouble(2,false);
- assert.strictEqual(E.G.ph,'v','ننتظر الشريك');E.answerSun(3,false);assert.notStrictEqual(E.G.ph,'v');assert.strictEqual(E.G.mode,'h');
- console.log('21) إعلان المشروع عند الرمي وصن الشريك في نافذة الحكم ✓');
+ assert.strictEqual(E.pending(1).k,'toSun','المشتري يقلب أو يؤكد');assert.strictEqual(E.pending(3),null,'الشريك لا خيار له هنا');
+ assert.strictEqual(E.answerSun(3,true),false,'ولا يقلب صنًّا في هذه النافذة');
+ E.answerDouble(0,false);E.answerDouble(2,false);assert.strictEqual(E.G.ph,'v','ننتظر المشتري');
+ assert.strictEqual(E.answerSun(1,false),true);assert.notStrictEqual(E.G.ph,'v');assert.strictEqual(E.G.mode,'h');
+ E=toV();assert.strictEqual(E.answerSun(1,true),true);assert.strictEqual(E.G.mode,'s','المشتري يقلبها صنًّا');
+ console.log('21) إعلان المشروع عند الرمي ونافذة الحكم للمشتري وحده ✓');
+}
+
+// ---------- 25) «قبلك» سلسلة: لا يقولها إلا من قبل صاحب الصن مباشرةً، ثم من قبله إن قالها وهكذا ----------
+{
+ const go=()=>{const r=rig({seed:3});const E=r.E;[0,1,2,3].forEach(s=>E.setHuman(s,true));E.newGame();const G=E.G;
+  G.dealer=0;G.turn=1;G.rd=1;G.cnt=0;G.fl={s:2,r:3};E.bid(1,'p');E.bid(2,'p');E.bid(3,'p');E.bid(0,'s');return E};
+ let E=go();assert.strictEqual(E.G.ph,'q');assert.strictEqual(E.G.cs,3,'يُسأل أقربهم قبله فقط (لا الأول ولا الشريك)');
+ assert.strictEqual(E.answerBefore(1,true),false,'الأول لا يقولها مباشرةً');assert.strictEqual(E.answerBefore(2,true),false,'ولا الثاني');
+ E.answerBefore(3,false);assert.strictEqual(E.G.buyer,0,'قال بس فيبقى الصن لصاحبه');assert.strictEqual(E.G.mode,'s');
+ E=go();E.answerBefore(3,true);assert.strictEqual(E.G.ph,'q');assert.strictEqual(E.G.cs,2,'قالها الثالث فيُسأل الثاني');
+ E.answerBefore(2,false);assert.strictEqual(E.G.buyer,3,'ينتهي عند الثالث');
+ E=go();E.answerBefore(3,true);E.answerBefore(2,true);assert.strictEqual(E.G.cs,1);E.answerBefore(1,true);
+ assert.strictEqual(E.G.buyer,1,'سلسلة كاملة: الأول يأخذه');assert.strictEqual(E.G.mode,'s');
+ console.log('25) سلسلة قبلك ✓');
 }
 
 // ---------- 17) بلاغ المستخدم: الشريك قاد ورقة ليست آسًا بلا إكة فعلى القاطع الدق ولو كان شريكه رابحًا حاليًا ----------

@@ -1,9 +1,7 @@
 // الواجهة: الرسم والأصوات وتغيير شكل الأوراق والمساعدة
 function log(){}
-const BIDW=/^(بس|ولا|صن|حكم|أشكل|قبلك|دبل|ثري|فور|قهوة|تأكيد|اقلب|يقلب)/;
 function say(i,m){
- if(i>=0&&BIDW.test(m))return;
- if(i>=0&&m=='إكة'){ekka(i);return} // الإكة: وسم كبير عند اللاعب بدل النص الصغير
+ if(i>=0){announce(i,m);return} // كل إعلانات اللاعبين (بس، صن، حكم، قبلك، دبل، مشاريع، إكة...) وسم كبير عند مقعد قائلها
  const e=$('msg');e.textContent=(i>=0?NM[i]+': ':'')+m;e.classList.add('show');clearTimeout(mt);mt=setTimeout(()=>e.classList.remove('show'),1800)}
 const SKIN={},ck=c=>RK[c.r]+SUL[c.s],IMGS=[];let UP={},SKW=true; // SKW: ننتظر تحميل صور الأوراق قبل أول رسم (يمنع ظهور الشكل الافتراضي لحظة تحديث الصفحة)
 function card(c,k='',st=''){if(!c)return `<div class="cd bkcard ${k}" style="${st}"></div>`;const r=c.r,s=SU[c.s],u=SKIN[ck(c)];
@@ -35,10 +33,12 @@ function skinGo(){const fs=[...$('fi').files],m={};ALLK.forEach(k=>m[k.toLowerCa
  Promise.all(fs.map(f=>{const k=m[f.name.replace(/\.[^.]*$/,'').toLowerCase()];return k?new Promise(r=>{const fr=new FileReader();fr.onload=()=>r([k,fr.result]);fr.onerror=()=>r(null);fr.readAsDataURL(f)}):null})).then(async a=>{const o={...UP};a.filter(Boolean).forEach(([k,v])=>o[k]=v);UP=o;await idb('set',o);Object.assign(SKIN,o);applySkin();OVP=null;$('ov').style.display='none';skinUI()})}
 function skinReset(){UP={};idb('del');ALLK.forEach(k=>delete SKIN[k]);applySkin();loadSkin();OVP=null;$('ov').style.display='none';skinUI()}
 
-function ekka(i){
+function announce(i,t){
  document.querySelectorAll('.ekk.p'+R(i)).forEach(x=>x.remove());
- const e=document.createElement('div');e.className='ekk p'+R(i);e.textContent='إكة';
+ const e=document.createElement('div');e.className='ekk p'+R(i)+(t.length>7?' lg':t.length>4?' md':'');
+ e.innerHTML=esc(t).replace(/[♥♦]/g,m=>`<i class="sx">${m}</i>`);
  $('stage').appendChild(e);setTimeout(()=>{if(e.remove)e.remove()},2000)}
+const ekka=i=>announce(i,'إكة');
 function share(){if(navigator.share)navigator.share({title:'بلوت',url:location.href}).catch(()=>{});else if(navigator.clipboard)navigator.clipboard.writeText(location.href).then(()=>say(-1,'تم نسخ الرابط')).catch(()=>{})}
 function splash(t,lv,sb){const e=document.createElement('div');e.className='splash lv'+lv;e.innerHTML=t+(sb?`<small>${sb}</small>`:'');$('stage').appendChild(e);if(lv>=3){$('stage').classList.add('shake');setTimeout(()=>$('stage').classList.remove('shake'),600)}setTimeout(()=>{if(e.remove)e.remove()},1700)}
 function confetti(n=44){const b=document.body;if(!b)return;const c=['#d9ae4a','#7db4ff','#ff9f86','#6fc263','#fff'];for(let i=0;i<n;i++){const e=document.createElement('div');e.className='cf';e.style.left=(Math.random()*100)+'vw';e.style.background=c[i%5];e.style.animationDelay=(Math.random()*.6)+'s';e.style.setProperty('--dx',((Math.random()-.5)*200)+'px');b.appendChild(e);setTimeout(()=>{if(e.remove)e.remove()},3600)}}
