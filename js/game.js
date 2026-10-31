@@ -40,12 +40,13 @@ function renderAct(cak){
  else if(ph=='b'){
   if(p&&p.k=='bid'){
    if(UI.pick)h=[0,1,2,3].filter(s=>s!=p.flip).map(s=>`<button class="${s%2?'r':''}" onclick="hb('h',${s})">${SU[s]}</button>`).join('')+`<button onclick="UI.pick=0;render()">رجوع</button>`;
-   else h=`<button class="bp" onclick="hb('p')">${p.rd==1?'بس':'ولا'}</button><button class="ba" ${p.canAsh?'':'disabled'} onclick="hb('a')">أشكل</button>`+(p.rd==1?`<button class="bh" onclick="hb('h',${p.flip})">حكم <b class="${p.flip%2?'rd':''}">${SU[p.flip]}</b></button>`:`<button class="bh" onclick="UI.pick=1;render()">حكم ثاني</button>`)+`<button class="bn" onclick="hb('s')">صن ☀</button>`}
+   else h=`<button class="bp" onclick="hb('p')">${p.rd==1?'بس':'ولا'}</button><button class="ba" ${p.canAsh?'':'disabled'} onclick="hb('a')">أشكل</button>`+(p.rd==1?`<button class="bh" onclick="hb('h',${p.flip})">حكم <b class="${p.flip%2?'rd':''}">${SU[p.flip]}</b></button>`:`<button class="bh" onclick="hb('h',0)">حكم ثاني</button>`)+`<button class="bn" onclick="hb('s')">صن ☀</button>`}
   else h=[G.rd==1?'بس':'ولا','أشكل','حكم','صن'].map(t=>`<button disabled>${t}</button>`).join('')}
  else if(ph=='q'&&p)h=`<button class="bp" onclick="aQ(0)">${p.rd==1?'بس':'ولا'}</button><button class="bn" onclick="aQ(1)">قبلك</button>`;
  else if(ph=='f'&&p)h=`<button class="bp" onclick="aF(0)">بس</button>${p.canAsh?`<button class="ba" onclick="aF(1,1)">أشكل</button>`:''}<button class="bn" onclick="aF(1)">صن ☀</button>`;
  else if((ph=='d'||ph=='v')&&p&&p.k=='double'){const n=p.n;h=`<button class="bp" onclick="aD(0)">بس</button>`+(p.two?`<button class="bh" onclick="aD(1,0)">${n} مفتوح</button><button class="ba" onclick="aD(1,1)">${n} مقفل</button>`:`<button class="bh" onclick="aD(1,0)">${n}</button>`)}
  else if(ph=='v'&&p&&p.k=='toSun')h=`<button class="bp" onclick="aW(0)">تأكيد الحكم</button><button class="bn" onclick="aW(1)">اقلب صن ☀</button>`;
+ else if(ph=='n'&&p&&p.k=='name')h=[0,1,2,3].filter(s=>s!=p.flip).map(s=>`<button class="${s%2?'r':''}" onclick="aN(${s})">${SU[s]}</button>`).join(''); // تسمية الحكم الثاني بعد قرار الخصم
  else if(ph=='x')h=`<button id="qb" onclick="qaidUI()">قيد</button>`; // يمكن القيد أثناء انتظار النتيجة
  else if(ph=='p'){
   const dcl=G.n==0&&!G.dc[ME]&&!G.fd[ME]; // الزر ثابت دائمًا قبل لعب أول ورقة (فلا يكشف أن معك مشروعًا)
@@ -58,6 +59,7 @@ function aQ(y){ENG.answerBefore(ME,y)}
 function aF(y,a){ENG.answerFlip(ME,y,a)}
 function aD(y,cl){ENG.answerDouble(ME,y,cl)}
 function aW(y){ENG.answerSun(ME,y)}
+function aN(s){ENG.nameSuit(ME,s)}
 function tkToggle(){UI.ak=!UI.ak;render()}
 function hp(c){
  if(UI.pm)commitP();

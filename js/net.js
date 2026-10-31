@@ -19,7 +19,7 @@ const REMOTE={
  pending:()=>NET.V&&NET.V.pend||null,
  val:(c,L)=>(G.mode=='h'&&c.s==G.tr)?10+ST[c.r]:c.s==L?SN[c.r]:-1,
  pnames:i=>G.pv[i].map(v=>PJ[v]).join(' + '),
- bid:(s,k,x)=>netAct('bid',k,x),answerBefore:(s,y)=>netAct('answerBefore',!!y),answerFlip:(s,y,a)=>netAct('answerFlip',!!y,a?1:0),answerSun:(s,y)=>netAct('answerSun',!!y),kawsh:()=>netAct('kawsh'),answerDouble:(s,y,cl)=>netAct('answerDouble',!!y,cl?1:0),
+ bid:(s,k,x)=>netAct('bid',k,x),answerBefore:(s,y)=>netAct('answerBefore',!!y),answerFlip:(s,y,a)=>netAct('answerFlip',!!y,a?1:0),nameSuit:(s,x)=>netAct('nameSuit',x),answerSun:(s,y)=>netAct('answerSun',!!y),kawsh:()=>netAct('kawsh'),answerDouble:(s,y,cl)=>netAct('answerDouble',!!y,cl?1:0),
  play:(s,id,ak)=>netAct('play',id,!!ak),project:(s,want)=>netAct('project',want),lay:(s,ids)=>netAct('lay',ids),sawa:()=>netAct('sawa'),
  qaidOpen:()=>netAct('qaidOpen'),qaidSet:(s,sel)=>netAct('qaidSet',sel),qaidConfirm:()=>netAct('qaidConfirm'),qaidAck:()=>netAct('qaidAck'),
  newGame:()=>{netTx({t:'own',a:'newGame'})},nextRound:()=>netAct('nextRound'),waiting:()=>NET.wait,skip:()=>netAct('skip')

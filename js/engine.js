@@ -48,6 +48,7 @@ function create(env){
  const str=c=>isT(c)?10+ST[c.r]:SN[c.r];
  const win=()=>G.t.reduce((a,b)=>val(b.c,G.t[0].c.s)>val(a.c,G.t[0].c.s)?b:a);
  const sortH=h=>h.sort((a,b)=>a.s-b.s||SN[b.r]-SN[a.r]).reverse();
+ const hsT=h=>G.tr>=0?hs(h,G.tr):[0,1,2,3].filter(k=>k!=G.fl.s).reduce((a,k)=>a+hs(h,k),0)/3; // قوة اليد بالحكم (الشكل مجهول في الحكم الثاني: المتوسط)
  function hs(h,s){const x=h.filter(c=>c.s==s);return x.reduce((a,c)=>a+[0,0,3,1,4,0,0,2][c.r],0)+(x.length>2?1:0)}
  function projItems(h){
   const it=[];
@@ -151,24 +152,35 @@ function create(env){
   if(ph=='b'){if(kawOK(s))kawGo(s);else botBid(s)}
   else if(ph=='q')ansQ(s,sn()>=5);
   else if(ph=='f')ansF(s,sn()>=7);
-  else if(ph=='d'){const h=G.h[s],st=G.dst,base=hk()?hs(h,G.tr)/12:sn()/10;ansD(s,rnd()<base*[.9,.5,.3,.2][st]?1:0)}
+  else if(ph=='d'){const h=G.h[s],st=G.dst,base=hk()?hsT(h)/12:sn()/10;ansD(s,rnd()<base*[.9,.5,.3,.2][st]?1:0)}
   else if(ph=='v')botV(s)
+  else if(ph=='n'){const h=G.h[s];let b=-1,bv=-1;for(let k=0;k<4;k++){if(k==G.fl.s)continue;const v=hs(h,k);if(v>bv){bv=v;b=k}}nameDone(s,b)}
   else if(ph=='p')botPlay(s)}
  function bidStep(){G.cs=G.turn;changed();botTurn()}
+ const hLab=s=>s>=0?'حكم '+SU[s]:'حكم ثاني';
  function bid(i,k,s){
+  if(k=='h'&&G.rd==2)s=-1; // حكم ثاني: الشكل يُحدَّد لاحقًا
   if(k=='p'){const pw=G.rd==1?'بس':'ولا';G.tag[i]=pw;G.ps[i]=1;say(i,pw);G.turn=(G.turn+1)%4;
    if(++G.cnt==4){if(G.rd==1){G.rd=2;G.cnt=0;G.tag=['','','',''];G.ps=[0,0,0,0]}
     else{say(-1,'الكل بس — إعادة التوزيع');D=(D+1)%4;G.ph='r';G.cs=-1;changed();return after(deal,2400)}}
    return bidStep()}
   if(k=='s'&&!G.nq){const qc=beforeCands(i);if(qc.length){G.sb=i;G.bq=qc;G.ph='q';G.tag[i]='صن';return qNext()}}
-  if(k=='h'&&!G.nf){const c=flipCands(i);if(c.length){G.fb={i,s};G.fq=c;G.ph='f';G.tag[i]='حكم '+SU[s];return flipNext()}}
-  const fb=k=='a'?(i+2)%4:i,lb=k=='h'?'حكم '+SU[s]:k=='a'?'أشكل':'صن';
+  if(k=='h'&&!G.nf){const c=flipCands(i);if(c.length){G.fb={i,s};G.fq=c;G.ph='f';G.tag[i]=hLab(s);return flipNext()}}
+  const fb=k=='a'?(i+2)%4:i,lb=k=='h'?hLab(s):k=='a'?'أشكل':'صن';
   G.mode=k=='h'?'h':'s';G.tr=k=='h'?s:-1;G.buyer=i;G.ph='d';G.ash=k=='a';G.cs=-1;G.recv=fb;G.dealt=0;
   G.tag=['','','',''];say(i,lb);
   G.turn=(G.dealer+1)%4;changed();
   after(dblStart,1500)} // التدبيل قبل توزيع بقية الأوراق: الجميع بخمس أوراق فقط
  // توزيع بقية الأوراق بعد انتهاء التدبيل (وبعد خيار قلب الحكم صنًّا)
+ function nameStart(){G.ph='n';G.cs=G.buyer;changed();botTurn()}
+ function nameDone(i,s){G.tr=s;G.tag=['','','',''];G.tag[i]=hLab(s);say(i,hLab(s));
+  if(!G.dst&&!G.dnm){G.dnm=1;return startVpost()} // بعد التسمية: لا تحويل لصن، لكن للخصم أن يدبّل (وقد عرف الشكل)
+  dealRest()}
+ function startVpost(){G.ph='v';G.cs=-1;G.vw={ans:[0,0,0,0],sch:[0,0,0,0],post:1};
+  for(let s=0;s<4;s++)if(s%2==G.buyer%2)G.vw.ans[s]=1;
+  changed();vSched()}
  function dealRest(){
+  if(hk()&&G.tr<0)return nameStart(); // حكم ثاني: يُسمّى الشكل بعد أن يقرر الخصم (دبل أو بس)؛ وإن قال أحدهم صن فلا يُسمّى أبدًا
   const fb=G.recv;G.ph='d';G.cs=-1;G.dealt=1;
   for(let j=0;j<4;j++)G.h[j].push(...G.dk.splice(0,j==fb?2:3));
   G.h[fb].push(G.fl);G.h.forEach(sortH);
@@ -190,7 +202,7 @@ function create(env){
  function botV(s){
   const h=G.h[s];
   if(s==G.buyer)vSun(s,h.reduce((a,c)=>a+(c.r==7?3:c.r==3?1:0),0)>=6&&rnd()<.4);
-  else vDbl(s,rnd()<hs(h,G.tr)/12*.9)}
+  else vDbl(s,rnd()<hsT(h)/12*.9)}
  function vClose(){
   const v=G.vw,b=G.buyer;
   if([0,1,2,3].every(s=>v.ans[s])){G.vw=null;return dealRest()}
@@ -204,7 +216,7 @@ function create(env){
   if(!y){v.ans[s]=1;G.tag[s]='تأكيد الحكم';say(s,'تأكيد الحكم');vClose();return true}
   G.vw=null;G.mode='s';G.tr=-1;G.cl=0;G.dst=0;G.dt=-1;G.m=1;G.ph='d';G.cs=-1;G.tag=['','','',''];G.tag[s]='صن';say(s,'اقلب صن');splash('صن!',2,'قلب الحكم');
   const b=s%2,o=1-b;if(S[b]>100&&S[o]<=100)dblNext();else dealRest();return true}
- function canAshSeat(i){return G.rd==1&&(i==G.dealer||i==(G.dealer+3)%4)}
+ function canAshSeat(i){return G.fl.r!=7&&(i==G.dealer||i==(G.dealer+3)%4)} // في الدورين: للموزع ومن قبله مباشرةً في الترتيب، وليس والإكة في الأرض
  // ترتيب اللاعب في الدور (الأول = من على يسار الموزع)
  const ordPos=x=>((x-(G.dealer+1))%4+4)%4;
  // هل يحق للاعب s أن يقلب حكمًا اشتراه b صنًّا (وأشكل صن):
@@ -432,7 +444,7 @@ function create(env){
   if(G.ph!='b'||G.turn!=i)return;
   const h=G.h[i],f=G.fl.s,sn=h.reduce((a,c)=>a+(c.r==7?3:c.r==3?1:0),0);let bs=-1,bv=0;
   for(let s=0;s<4;s++){if(G.rd==1&&s!=f||G.rd==2&&s==f)continue;const v=hs(G.rd==1?[...h,G.fl]:h,s);if(v>bv){bv=v;bs=s}}
-  if(G.rd==1&&(i==G.dealer||i==(G.dealer+3)%4)&&sn>=5&&sn<7&&bv<6)bid(i,'a');
+  if(canAshSeat(i)&&sn>=5&&sn<7&&bv<6)bid(i,'a');
   else if(sn>=7)bid(i,'s');else if(bv>=(G.rd==1?6:5))bid(i,'h',bs);else bid(i,'p');
  }
  // لعب البوت: يرى كل الأوراق ويبحث عن أفضل لعبة (أكبر فرق أبناط لفريقه).
@@ -550,9 +562,10 @@ function create(env){
  // القرار الذي ينتظره المحرك من هذا المقعد البشري الآن (أو null)
  function pending(seat){
   if(!G||G.qa||!humans[seat])return null;
-  if(G.ph=='b'&&G.turn==seat)return {k:'bid',rd:G.rd,flip:G.fl.s,canAsh:G.rd==1&&(seat==G.dealer||seat==(G.dealer+3)%4)};
+  if(G.ph=='b'&&G.turn==seat)return {k:'bid',rd:G.rd,flip:G.fl.s,canAsh:canAshSeat(seat)};
   if(G.ph=='q'&&G.cs==seat)return {k:'before',rd:G.rd};
   if(G.ph=='f'&&G.cs==seat)return {k:'flip',canAsh:canAshSeat(seat)};
+   if(G.ph=='n'&&G.cs==seat)return {k:'name',flip:G.fl.s};
   if(G.ph=='d'&&G.cs==seat){const st=G.dst;return {k:'double',st,n:DN[st],two:hk()&&(st==0||st==2)}}
   if(G.ph=='v'&&G.vw&&!G.vw.ans[seat]){if(seat==G.buyer)return {k:'toSun'};if(seat%2!=G.buyer%2)return {k:'double',st:0,n:DN[0],two:true}}
   if(needLay(seat))return {k:'lay',want:G.pv[seat].slice()};
@@ -572,12 +585,13 @@ function create(env){
   bid(seat,k,s){
    if(!live(seat)||G.ph!='b'||G.turn!=seat)return false;
    if(k=='p'||k=='s'){}
-   else if(k=='a'){if(!(G.rd==1&&(seat==G.dealer||seat==(G.dealer+3)%4)))return false}
-   else if(k=='h'){if(!Number.isInteger(s)||s<0||s>3||(G.rd==1?s!=G.fl.s:s==G.fl.s))return false}
+   else if(k=='a'){if(!canAshSeat(seat))return false}
+   else if(k=='h'){if(G.rd==1&&s!=G.fl.s)return false} // الدور الثاني: لا يُسمّى الشكل الآن (يُسمّى بعد قرار الخصم)
    else return false;
    bid(seat,k,s);return true},
   answerBefore(seat,y){if(!live(seat)||G.ph!='q'||G.cs!=seat)return false;ansQ(seat,!!y);return true},
-  answerFlip(seat,y,ash){if(!live(seat)||G.ph!='f'||G.cs!=seat)return false;ansF(seat,!!y,!!ash);return true},
+  nameSuit(seat,s){if(!live(seat)||G.ph!='n'||G.cs!=seat||!Number.isInteger(s)||s<0||s>3||s==G.fl.s)return false;nameDone(seat,s);return true},
+   answerFlip(seat,y,ash){if(!live(seat)||G.ph!='f'||G.cs!=seat)return false;ansF(seat,!!y,!!ash);return true},
   kawsh(seat){if(!live(seat)||!kawOK(seat))return false;kawGo(seat);return true},
   answerSun(seat,y){return live(seat)?vSun(seat,!!y):false},
   answerDouble(seat,y,cl){if(!live(seat))return false;if(G.ph=='v')return vDbl(seat,!!y,cl);if(G.ph!='d'||G.cs!=seat)return false;ansD(seat,y?1:0,cl);return true},

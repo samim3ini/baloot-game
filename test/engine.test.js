@@ -78,6 +78,7 @@ function checkRound(E,label){
     if(x<.25)E.bid(0,'p');else if(x<.5&&p.canAsh)E.bid(0,'a');else if(x<.75)E.bid(0,'h',p.rd==1?p.flip:(p.flip+1)%4);else E.bid(0,'s');
     return true}
    if(p.k=='toSun'){E.answerSun(0,R()<.4);return true}
+   if(p.k=='name'){E.nameSuit(0,[0,1,2,3].find(x=>x!=p.flip));return true}
    if(p.k=='before'){E.answerBefore(0,R()<.5);return true}
    if(p.k=='flip'){E.answerFlip(0,R()<.5);return true}
    if(p.k=='double'){E.answerDouble(0,R()<.4,R()<.5?1:0);return true}
@@ -468,7 +469,7 @@ function checkRound(E,label){
  o=go(3,true,1);assert.strictEqual(o.pend.canAsh,true,'من على يمين الموزع يرى أشكل');assert.strictEqual(o.E.G.ash,true);
  o=go(2,true,1);assert.strictEqual(o.pend.canAsh,false,'غيرهما لا يرى أشكل');assert.strictEqual(o.E.G.ash,false);assert.strictEqual(o.E.G.mode,'s','يصير صنًّا عاديًا');
  o=go(0,false,1);assert.strictEqual(o.E.G.ash,false,'صن عادي');
- o=go(0,true,2);assert.strictEqual(o.pend.canAsh,false,'لا أشكل في الدور الثاني');assert.strictEqual(o.E.G.ash,false);
+ o=go(0,true,2);assert.strictEqual(o.pend.canAsh,true,'الأشكل في الدور الثاني أيضًا');assert.strictEqual(o.E.G.ash,true);
  console.log('19) أشكل عند قلب الحكم ✓');
 }
 
@@ -523,6 +524,44 @@ function checkRound(E,label){
  E=go();E.answerBefore(3,true);E.answerBefore(2,true);assert.strictEqual(E.G.cs,1);E.answerBefore(1,true);
  assert.strictEqual(E.G.buyer,1,'سلسلة كاملة: الأول يأخذه');assert.strictEqual(E.G.mode,'s');
  console.log('25) سلسلة قبلك ✓');
+}
+
+// ---------- 26) لا أشكل مع الإكة، والحكم الثاني: التحويل صنًّا قبل التسمية، والتدبيل قبلها وبعدها ----------
+{
+ const mk=(ace,rd)=>{const r=rig({seed:3});const E=r.E;[0,1,2,3].forEach(s=>E.setHuman(s,true));E.newGame();const G=E.G;
+  G.dealer=0;G.turn=1;G.rd=rd;G.cnt=0;G.fl={s:2,r:ace?7:3};return {r,E,G}};
+ // الإكة: لا أشكل لا في المزايدة ولا في القلب
+ let {E,G}=mk(true,1);G.turn=0;
+ assert.strictEqual(E.pending(0).canAsh,false,'مع الإكة لا أشكل للموزع');assert.strictEqual(E.bid(0,'a'),false);
+ ({E,G}=mk(true,1));E.bid(1,'h',2);while(E.G.ph=='f'&&E.G.cs!=0)E.answerFlip(E.G.cs,false);
+ assert.strictEqual(E.pending(0).canAsh,false);
+ ({E,G}=mk(false,1));G.turn=0;assert.strictEqual(E.pending(0).canAsh,true,'بلا إكة: الموزع يقول أشكل');
+ // الحكم الثاني
+ let r;({r,E,G}=mk(false,2));
+ assert.strictEqual(E.bid(1,'h',0),true);assert.strictEqual(G.tag[1],'حكم ثاني','لا شكل في الإعلان');
+ while(E.G.ph=='f')E.answerFlip(E.G.cs,false);r.adv(1700);
+ assert.strictEqual(E.G.ph,'v');assert.strictEqual(G.tr,-1,'الشكل لم يُسمَّ بعد');
+ E.answerSun(1,false);E.answerDouble(0,false);E.answerDouble(2,false);
+ assert.strictEqual(E.G.ph,'n','بعد قرار الخصم يُسمّى الحكم');assert.strictEqual(E.pending(1).k,'name');assert.strictEqual(E.pending(0),null);
+ assert.strictEqual(E.nameSuit(1,2),false,'لا يجوز شكل الأرض');assert.strictEqual(E.nameSuit(0,1),false,'للمشتري وحده');
+ assert.strictEqual(E.nameSuit(1,0),true);assert.strictEqual(G.tr,0);assert.strictEqual(G.mode,'h');
+ assert.strictEqual(E.G.ph,'v','بعد التسمية: نافذة للتدبيل');assert.strictEqual(E.pending(0).k,'double','الخصم يدبّل بعد معرفة الشكل');
+ assert.strictEqual(E.pending(1),null,'ولا تحويل لصن بعد التسمية');assert.strictEqual(E.answerSun(1,true),false);
+ E.answerDouble(0,false);E.answerDouble(2,false);assert.notStrictEqual(E.G.ph,'v');assert.strictEqual(E.G.mode,'h');assert.strictEqual(E.G.tr,0);
+ // التدبيل بعد التسمية فعلًا
+ ({r,E,G}=mk(false,2));E.bid(1,'h',0);while(E.G.ph=='f')E.answerFlip(E.G.cs,false);r.adv(1700);
+ E.answerSun(1,false);E.answerDouble(0,false);E.answerDouble(2,false);E.nameSuit(1,0);
+ assert.strictEqual(E.answerDouble(2,true),true,'دبّل بعد التسمية');assert.strictEqual(E.G.ph,'d');assert(E.G.dst>=1);
+ // إن قلبه الخصم صنًّا فلا يُسمّى الحكم أبدًا
+ ({r,E,G}=mk(false,2));E.bid(1,'h',0);
+ assert.strictEqual(E.answerFlip(E.G.cs,true),true);r.adv(3000);
+ assert.strictEqual(E.G.mode,'s');assert.strictEqual(E.G.tr,-1);assert.notStrictEqual(E.G.ph,'n');
+ // وإن دبّلوا فالتسمية بعد التدبيل
+ ({r,E,G}=mk(false,2));E.bid(1,'h',0);while(E.G.ph=='f')E.answerFlip(E.G.cs,false);r.adv(1700);
+ E.answerSun(1,false);E.answerDouble(0,true);
+ for(let i=0;i<8&&E.G.ph!='n'&&E.G.ph!='p';i++){const c=E.G.cs;if(E.G.ph=='d'&&c>=0)E.answerDouble(c,false);r.adv(300)}
+ assert.strictEqual(E.G.ph,'n','بعد الدبل تتم التسمية');assert(E.G.m>=2||E.G.dst>=1,'الدبل مسجَّل');
+ console.log('26) لا أشكل مع الإكة + تسمية الحكم الثاني بعد قرار الخصم ✓');
 }
 
 // ---------- 17) بلاغ المستخدم: الشريك قاد ورقة ليست آسًا بلا إكة فعلى القاطع الدق ولو كان شريكه رابحًا حاليًا ----------

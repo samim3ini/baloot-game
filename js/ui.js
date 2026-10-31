@@ -66,8 +66,8 @@ function render(){
  const us=ME%2,them=1-us;setScore('s0',S[us]);setScore('s1',S[them]);$('streak').textContent=STREAK>=2?'🔥 '+STREAK+' جولات متتالية':'';
  $('hist').innerHTML=HIST.map(h=>`<tr><td>${h.n}</td><td>${h.mode}${h.m>1?' ×'+h.m:''}</td><td class="a">${h.p[us]}</td><td class="b">${h.p[them]}</td></tr>`).join('');{const hs=$('hsc');hs.scrollTop=hs.scrollHeight}
  $('live').innerHTML='';$('rn').textContent='الجولة '+RN;
- function bdg(i){if(!G.mode||G.buyer!=i)return'';return G.mode=='s'?(G.ash?'أشكل · صن':'صن'):`حكم <b class="${G.tr%2?'rd':''}">${SU[G.tr]}</b>`}
- $('info').innerHTML=(G.mode?(G.mode=='s'?'<span class="bg">صن</span>':`<span class="bg ${G.tr%2?'rd':''}">${SU[G.tr]}</span> حكم`)+'<br><small>المشتري: '+esc(NM[G.buyer])+(G.ash?' (أشكل)':'')+'</small>':'');
+ function bdg(i){if(!G.mode||G.buyer!=i)return'';return G.mode=='s'?(G.ash?'أشكل':'صن'):(G.tr<0?'حكم ثاني':`حكم <b class="${G.tr%2?'rd':''}">${SU[G.tr]}</b>`)}
+ $('info').innerHTML=(G.mode?(G.mode=='s'?'<span class="bg">'+(G.ash?'أشكل':'صن')+'</span>':(G.tr<0?'<span class="bg">ثاني</span> حكم':`<span class="bg ${G.tr%2?'rd':''}">${SU[G.tr]}</span> حكم`))+'<br><small>المشتري: '+esc(NM[G.buyer])+'</small>':'');
  const act=G.ph!='e'&&G.t.length<4;
  for(let r=1;r<4;r++){const i=(ME+r)%4,e=$('p'+r),hd=G.h[i],n=hd.length,real=NETON&&n&&hd[0];e.className='seat tm'+(r%2)+(act?(G.turn==i?' on':' dim'):'')+(G.mode&&G.buyer==i?' buyer':'');
   e.innerHTML=(real?`<div class="bk fc">${hd.map(c=>card(c)).join('')}</div>`:`<div class="bk">${Array.from({length:n},(_,k)=>`<u style="--r:${((k-(n-1)/2)*8).toFixed(1)}deg"></u>`).join('')}</div>`)+`<div class="av"></div><div class="pl"><b class="nm">${esc(NM[i])}</b>${G.dw&&G.dw[i]?`<small class="dwt">${esc(G.dw[i])}</small>`:''}</div>${i==G.dealer&&!G.mode?DLR:''}${G.mode&&G.buyer==i?`<div class="by">${bdg(i)}</div>`:''}${G.tag[i]?`<div class="bb">${G.tag[i]}</div>`:''}${pileHtml(i)}`}
@@ -83,7 +83,7 @@ function render(){
  document.querySelector('.me').className='me tm0'+(act?(G.turn==ME?' on':' dim'):'')+(G.mode&&G.buyer==ME?' buyer':'');document.querySelector('.me .nm').textContent=SPEC?'مشاهد · مقعد '+(ME+1):'أنت';
  $('dl0').style.display=G.dealer==ME&&!G.mode?'':'none';$('pl0').innerHTML=pileHtml(ME);$('stage').classList.toggle('myturn',!!my);$('rdn').style.display='none';
  $('dblb').innerHTML='';{const t0=G.ph=='p'&&G.tag[ME],dw=G.dw&&G.dw[ME];$('by0').innerHTML=(t0?esc(t0):bdg(ME))+(dw?`<small class="dwt">${esc(dw)}</small>`:'');$('by0').style.display=t0||dw||(G.mode&&G.buyer==ME)?'':'none'}
- $('trp').style.display=G.mode?'':'none';$('trp').innerHTML=G.mode?(G.mode=='s'?'<b class="sn">صن</b>':`<b class="${G.tr%2?'rd':''}">${SU[G.tr]}</b><small>حكم</small>`)+(G.ash?'<small>أشكل</small>':''):'';
+ $('trp').style.display=G.mode?'':'none';$('trp').innerHTML=G.mode?(G.mode=='s'?'<b class="sn">'+(G.ash?'أشكل':'صن')+'</b>':(G.tr<0?'<b>؟</b><small>حكم ثاني</small>':`<b class="${G.tr%2?'rd':''}">${SU[G.tr]}</b><small>حكم</small>`)):'';
  renderAct(cak);qaidSync();fitHand()
 }
 
