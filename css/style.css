@@ -602,3 +602,47 @@ body.onl #emb{display:none}
  .ekk.p2{top:112px}
 }
 @media(max-width:820px){.ekk.p1{right:12px}.ekk.p3{left:12px}}
+
+/* ===== الجولة السادسة: واجهة أخف ===== */
+/* لا مربع علوي لحالة اللعب ولا لوحة معلومات؛ صن/حكم عند مقعد المشتري فقط (ويختفي بعد 10 ثوان) */
+#trp,#info{display:none!important}
+
+/* الإعلانات: صغيرة غير مشتّتة (كمبيوتر وجوال) */
+.ekk{font-size:24px;padding:2px 14px 4px;border-radius:12px;border-width:2px;box-shadow:0 0 0 2px #000a,0 0 14px 3px #ffd54b99,0 5px 12px #000a}
+.ekk.md,.ekk.lg{font-size:21px}
+.by{font-size:15px;padding:0 8px}.by b{font-size:20px}
+.bb{font-size:14px}
+@media(max-width:820px){
+ .ekk{font-size:15px;padding:1px 9px 3px;border-radius:9px;box-shadow:0 0 0 1px #000a,0 0 9px 2px #ffd54b99,0 3px 8px #000a}
+ .ekk.md,.ekk.lg{font-size:14px}
+ .by{font-size:11px;padding:0 6px}.by b{font-size:14px}
+ .bb,#p1 .bb,#p3 .bb{font-size:11px;padding:1px 7px}
+}
+
+/* عرض المشاريع المنزّلة: أوراق صغيرة بلا إطار قرب مقعد صاحبها (كما في كملنا) */
+.pjr{background:none!important;border:0!important;box-shadow:none!important;padding:0 calc(var(--pcw,34px)*.45) 0 0!important;gap:0!important;font-size:0;--pcw:34px;animation:pop2 .25s ease-out}
+.pjr.sm{display:flex;flex-direction:row;align-items:flex-start;flex-wrap:wrap;direction:ltr;justify-content:center;width:max-content;max-width:var(--mw,200px);transform:none;bottom:auto;z-index:9}
+.pjr.sm .cd{--cw:var(--pcw);margin:0 calc(var(--pcw)*-.45) 0 0}
+.pjr.p0.sm{position:static;margin-inline-start:6px;--pcw:22px;max-width:150px;top:auto;left:auto;right:auto}
+@media(max-width:820px){.pjr{--pcw:25px}.pjr.p0.sm{--pcw:20px;max-width:120px}}
+
+/* ===== الجوال: واجهة أصغر ومساحة أوسع للورق ===== */
+@media(max-width:820px){
+ #wrap{padding:4px;gap:4px}
+ #side{padding:4px;gap:3px;border-radius:14px}
+ .tb .gb,.gb{padding:3px 2px;font-size:11px;border-radius:9px}
+ .st .v{padding:1px 8px}.st b{font-size:20px}
+ #s0::before,#s1::before{font-size:10px}
+ #stage{grid-template-columns:58px 1fr 58px;padding:4px}
+ .seat{width:52px}
+ .av{width:28px;height:28px}
+ .pl{padding:11px 2px 2px;margin-top:-9px;border-radius:7px}
+ .pl .nm{font-size:9px;padding:0 2px}
+ .bk u{width:15px;height:22px;margin:0 -7px}.bk{height:22px}
+ #act{min-height:42px;gap:5px}
+ #act button{height:40px;font-size:clamp(12px,3.3vw,15px);border-radius:10px}
+ #bar{padding:3px 5px}
+ .me .av{width:30px;height:30px}
+ .me .nm,.me .dlr{font-size:11px}
+ .me .dlr{width:30px;height:30px}
+}
