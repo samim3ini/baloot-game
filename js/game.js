@@ -15,7 +15,7 @@ const hk=()=>G.mode=='h',isT=c=>hk()&&c.s==G.tr,val=(c,L)=>ENG.val(c,L),pnames=i
 function onEvent(ev){
  switch(ev.t){
   case 'state':render();break;
-  case 'deal':$('ov').style.display='none';$('pmenu').style.display='none';$('wait').style.display='none';UI.ak=0;UI.pm=0;UI.pick=0;UI.act=null;break;
+  case 'deal':$('ov').style.display='none';$('pmenu').style.display='none';$('wait').style.display='none';UI.ak=0;UI.bk=0;UI.pm=0;UI.pick=0;UI.act=null;break;
   case 'fresh':FRESH=1;break;
   case 'say':say(ev.i,ev.m);break;
   case 'splash':splash(ev.text,ev.lv,ev.sub);break;
@@ -50,7 +50,7 @@ function renderAct(cak){
  else if(ph=='x')h=`<button id="qb" onclick="qaidUI()">قيد</button>`; // يمكن القيد أثناء انتظار النتيجة
  else if(ph=='p'){
   const dcl=G.n==0&&!G.dc[ME]&&!G.fd[ME]; // الزر ثابت دائمًا قبل لعب أول ورقة (فلا يكشف أن معك مشروعًا)
-  h=`<button id="qb" onclick="qaidUI()">قيد</button>`+(dcl?`<button id="pjb" class="on" onclick="projMenu()">المشاريع</button>`:'')+(hk()?`<button class="${UI.ak?'on':''}" ${cak?'':'disabled'} onclick="tkToggle()">إكة</button>`:'')+`<button id="bs" onclick="sawa()" ${G.turn==ME&&!G.t.length&&G.n>=1?'':'disabled'}>سوا</button>`}
+  h=`<button id="qb" onclick="qaidUI()">قيد</button>`+(dcl?`<button id="pjb" class="on" onclick="projMenu()">المشاريع</button>`:'')+(hk()?`<button class="${UI.ak?'on':''}" ${cak?'':'disabled'} onclick="tkToggle()">إكة</button>`:'')+(hasBaloot()?`<button class="${UI.bk?'on':''}" onclick="blToggle()">بلوت</button>`:'')+`<button id="bs" onclick="sawa()" ${G.turn==ME&&!G.t.length&&G.n>=1?'':'disabled'}>سوا</button>`}
  if(UI.act!==h){UI.act=h;$('act').innerHTML=h}}
 
 // ===== أفعال اللاعب (تُرسل للمحرك، وهو من يقرر) =====
@@ -61,11 +61,14 @@ function aD(y,cl){ENG.answerDouble(ME,y,cl)}
 function aW(y){ENG.answerSun(ME,y)}
 function aN(s){ENG.nameSuit(ME,s)}
 function tkToggle(){UI.ak=!UI.ak;render()}
+function blToggle(){UI.bk=!UI.bk;render()}
+// مشروع البلوت: شايب وبنت لون الحكم معك من بداية الجولة (في اليد أو مرميّان). الزر ثابت طوال الجولة، وعليك ضغطه وقت رمي آخر الورقتين وإلا لا يُحسب
+function hasBaloot(){if(SPEC||!hk()||G.tr<0)return false;const a=[...G.h[ME],...G.pl[ME]].filter(c=>c&&c.s==G.tr);return a.some(c=>c.r==5)&&a.some(c=>c.r==6)}
 function hp(c){
  if(UI.pm)commitP();
  const id=c.s*8+c.r;
  if(UI.sel!==id){UI.sel=id;render();return} // لمسة أولى: تحديد الورقة، ولمسة ثانية عليها: إنزالها
- UI.sel=-1;const a=UI.ak;UI.ak=0;ENG.play(ME,id,!!a)}
+ UI.sel=-1;const a=UI.ak,b=UI.bk;UI.ak=0;UI.bk=0;ENG.play(ME,id,!!a,!!b)}
 function sawa(){ENG.sawa(ME)}
 function newGame(){STREAK=0;ENG.newGame()}
 function specTurn(){SPECSEAT=(SPECSEAT+1)%4;if(typeof netView=='function')netView();render()}

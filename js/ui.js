@@ -34,14 +34,16 @@ function skinGo(){const fs=[...$('fi').files],m={};ALLK.forEach(k=>m[k.toLowerCa
 function skinReset(){UP={};idb('del');ALLK.forEach(k=>delete SKIN[k]);applySkin();loadSkin();OVP=null;$('ov').style.display='none';skinUI()}
 
 function announce(i,t){
+ if(tagFor(i)===t||(G.dw&&G.dw[i]===t))return; // معروض أصلًا أمام المقعد: لا يُكرَّر
  document.querySelectorAll('.ekk.p'+R(i)).forEach(x=>x.remove());
  const e=document.createElement('div');e.className='ekk p'+R(i)+(t.length>7?' lg':t.length>4?' md':'');
  e.innerHTML=esc(t).replace(/[♥♦]/g,m=>`<i class="sx">${m}</i>`);
  $('stage').appendChild(e);
  const P=R(i),st=$('stage').getBoundingClientRect();
  if(P==0){const bb=$('bar').getBoundingClientRect();e.style.left='50%';e.style.translate='-50% 0';e.style.bottom=(st.bottom-bb.top+6)+'px'}
- else{const sr=$('p'+P).getBoundingClientRect();e.style.top=((sr.top+sr.bottom)/2-st.top)+'px';e.style.translate='0 -50%';
-  if(P==1)e.style.right=(st.right-sr.left+6)+'px';else e.style.left=(sr.right-st.left+6)+'px'} // بجانب المقعد
+ else{const sr=$('p'+P).getBoundingClientRect(); // أمام المقعد: نحو وسط الملعب
+  if(P==2){e.style.top=(sr.bottom-st.top+4)+'px';e.style.left=((sr.left+sr.right)/2-st.left)+'px';e.style.translate='-50% 0'}
+  else{e.style.top=((sr.top+sr.bottom)/2-st.top)+'px';e.style.translate='0 -50%';if(P==1)e.style.right=(st.right-sr.left+6)+'px';else e.style.left=(sr.right-st.left+6)+'px'}}
  setTimeout(()=>{if(e.remove)e.remove()},2000)}
 const ekka=i=>announce(i,'إكة');
 function share(){if(navigator.share)navigator.share({title:'بلوت',url:location.href}).catch(()=>{});else if(navigator.clipboard)navigator.clipboard.writeText(location.href).then(()=>say(-1,'تم نسخ الرابط')).catch(()=>{})}
@@ -52,23 +54,36 @@ function setScore(id,v){const e=$(id);if(e.textContent==String(v))return;e.textC
 const jit=(c,n)=>{const x=Math.sin((c.s*8+c.r+1)*(n+3.7))*10000;return x-Math.floor(x)};
 function revealHtml(){return G.rev.map((h,i)=>h.length?`<div class="rv rv${R(i)}">${h.map(c=>card(c,'',`--rr:${((jit(c,1)-.5)*26).toFixed(1)}deg;--rx:${((jit(c,2)-.5)*10).toFixed(1)}px;--ry:${((jit(c,3)-.5)*12).toFixed(1)}px`)).join('')}</div>`:'').join('')}
 function showProj(ev){
- const P=R(ev.i);document.querySelectorAll('.pjr.p'+P).forEach(x=>x.remove()); // لا يتراكب عرضان لنفس اللاعب
- const e=document.createElement('div');e.className='pjr sm p'+P;
- e.innerHTML=ev.cards.map(c=>card(c)).join(''); // الأوراق فقط (بلا إطار ولا عنوان) قرب مقعد صاحبها لئلا تغطي المنتصف
- if(P==0)document.querySelector('#bar .me').appendChild(e);
- else{
-  const stg=$('stage');stg.appendChild(e);
-  const st=stg.getBoundingClientRect(),sr=$('p'+P).getBoundingClientRect();
-  e.style.top=(sr.bottom-st.top+3)+'px';
-  if(P==2){e.style.left=((sr.left+sr.right)/2-st.left)+'px';e.style.translate='-50% 0';e.style.setProperty('--mw','190px')}
-  else{e.style.setProperty('--mw',Math.round(sr.width+30)+'px');if(P==1)e.style.right=(st.right-sr.right)+'px';else e.style.left=(sr.left-st.left)+'px'}
- }
- setTimeout(()=>{if(e.remove)e.remove()},4500)}
+ UI.pj=UI.pj||{};UI.pj[ev.i]={cards:ev.cards,until:Date.now()+5000};
+ render();setTimeout(()=>{if(G)render()},5100)}
 
 // كومة الأكلات الرابحة لمقعد i: أوراق أفقية متراكمة (حتى 8 طبقات) وعدد الأكلات فوقها
 function pileHtml(i){const n=G.pile[i];if(!n)return'';const L=Math.min(n,3);return `<div class="pile" style="--n:3">${Array.from({length:L},(_,k)=>`<u style="--k:${k}"></u>`).join('')}<b>${n}</b></div>`}
 const esc=t=>String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const DLR='<div class="dlr" title="الموزع"><i></i><span>موزع</span></div>';
+const BUYER_TAG_MS=10000; // يختفي وسم صن/حكم عند مقعد المشتري بعد هذه المدة من توزيع بقية الأوراق (0 = لا يظهر أصلًا)
+function byOn(){
+ const dealt=!!(G.dealt||G.ph=='p'||G.ph=='x');
+ if(!G.mode||!dealt){UI.byAt=0;return !!G.mode}
+ if(!UI.byAt){if(G.ph=='p'&&G.n>0)UI.byAt=1;else{UI.byAt=Date.now();setTimeout(()=>{if(G)render()},BUYER_TAG_MS+80)}}
+ return UI.byAt>1&&Date.now()-UI.byAt<BUYER_TAG_MS}
+// نص الإعلان المعروض أمام مقعد اللاعب: آخر ما قاله، ووسم المشتري (صن/حكم) يختفي بعد BUYER_TAG_MS من توزيع بقية الأوراق
+const buyerLabel=()=>G.mode=='s'?(G.ash?'أشكل':'صن'):(G.tr<0?'حكم ثاني':'حكم '+SU[G.tr]);
+function tagFor(i){
+ let t=G.tag[i]||'';const isB=G.mode&&G.buyer==i,on=isB?byOn():false;
+ if(!t&&on)t=buyerLabel();
+ if(t&&isB&&!on&&t===buyerLabel())t='';
+ return t}
+const fbTxt=t=>esc(t).replace(/[♥♦]/g,m=>`<i class="sx">${m}</i>`);
+function frHtml(i){
+ const dl=i==G.dealer&&!G.mode?DLR:'',t=tagFor(i),dw=G.dw&&G.dw[i];
+ return dl||t||dw?`<div class="fr${fanItems(i)?' fan':''}">${dl}${t?`<span class="fb">${fbTxt(t)}</span>`:''}${dw?`<span class="fb dw">${fbTxt(dw)}</span>`:''}</div>`:''}
+// مروحة المشروع المنزَّل: أوراق مائلة متقاربة كاليد، تخرج من تحت مقعد صاحبها نحو وسط الملعب
+function fanItems(i){
+ const o=UI.pj&&UI.pj[i];if(!o||Date.now()>o.until)return '';
+ const n=o.cards.length,c=(n-1)/2,step=Math.min(9,66/Math.max(1,n-1));
+ return o.cards.map((cd,k)=>`<i class="pf" style="--a:${((k-c)*step).toFixed(1)}deg;--k:${(k-c).toFixed(2)}">${card(cd)}</i>`).join('')}
+const fanHtml=i=>{const f=fanItems(i);return f&&R(i)?`<div class="pjf">${f}</div>`:''};
 const HAND_SUITS=[1,2,3,0]; // هاص ♥ ثم شريا ♣ ثم ديمن ♦ ثم سبيت ♠
 const HAND_RTL=true; // true: يُقرأ الترتيب من اليمين إلى اليسار (غيّرها إلى false ليبدأ من اليسار)
 function sortHand(h){
@@ -79,17 +94,11 @@ function render(){
  const us=ME%2,them=1-us;setScore('s0',S[us]);setScore('s1',S[them]);$('streak').textContent=STREAK>=2?'🔥 '+STREAK+' جولات متتالية':'';
  $('hist').innerHTML=HIST.map(h=>`<tr><td>${h.n}</td><td>${h.mode}${h.m>1?' ×'+h.m:''}</td><td class="a">${h.p[us]}</td><td class="b">${h.p[them]}</td></tr>`).join('');{const hs=$('hsc');hs.scrollTop=hs.scrollHeight}
  $('live').innerHTML='';$('rn').textContent='الجولة '+RN;
- const BUYER_TAG_MS=10000; // يختفي وسم صن/حكم عند مقعد المشتري بعد هذه المدة من توزيع بقية الأوراق (0 = لا يظهر أصلًا)
-function byOn(){
- const dealt=!!(G.dealt||G.ph=='p'||G.ph=='x');
- if(!G.mode||!dealt){UI.byAt=0;return !!G.mode}
- if(!UI.byAt){if(G.ph=='p'&&G.n>0)UI.byAt=1;else{UI.byAt=Date.now();setTimeout(()=>{if(G)render()},BUYER_TAG_MS+80)}}
- return UI.byAt>1&&Date.now()-UI.byAt<BUYER_TAG_MS}
-function bdg(i){if(!G.mode||G.buyer!=i)return'';return G.mode=='s'?(G.ash?'أشكل':'صن'):(G.tr<0?'حكم ثاني':`حكم <b class="${G.tr%2?'rd':''}">${SU[G.tr]}</b>`)}
+ function bdg(i){if(!G.mode||G.buyer!=i)return'';return G.mode=='s'?(G.ash?'أشكل':'صن'):(G.tr<0?'حكم ثاني':`حكم <b class="${G.tr%2?'rd':''}">${SU[G.tr]}</b>`)}
  $('info').innerHTML=(G.mode?(G.mode=='s'?'<span class="bg">'+(G.ash?'أشكل':'صن')+'</span>':(G.tr<0?'<span class="bg">ثاني</span> حكم':`<span class="bg ${G.tr%2?'rd':''}">${SU[G.tr]}</span> حكم`))+'<br><small>المشتري: '+esc(NM[G.buyer])+'</small>':'');
  const act=G.ph!='e'&&G.t.length<4;
  for(let r=1;r<4;r++){const i=(ME+r)%4,e=$('p'+r),hd=G.h[i],n=hd.length,real=NETON&&n&&hd[0];e.className='seat tm'+(r%2)+(act?(G.turn==i?' on':' dim'):'')+(G.mode&&G.buyer==i?' buyer':'');
-  e.innerHTML=(real?`<div class="bk fc">${hd.map(c=>card(c)).join('')}</div>`:`<div class="bk">${Array.from({length:n},(_,k)=>`<u style="--r:${((k-(n-1)/2)*8).toFixed(1)}deg"></u>`).join('')}</div>`)+`<div class="av"></div><div class="pl"><b class="nm">${esc(NM[i])}</b>${G.dw&&G.dw[i]?`<small class="dwt">${esc(G.dw[i])}</small>`:''}</div>${i==G.dealer&&!G.mode?DLR:''}${G.mode&&G.buyer==i&&byOn()?`<div class="by">${bdg(i)}</div>`:''}${G.tag[i]?`<div class="bb">${G.tag[i]}</div>`:''}${pileHtml(i)}`}
+  e.innerHTML=(real?`<div class="bk fc">${hd.map(c=>card(c)).join('')}</div>`:`<div class="bk">${Array.from({length:n},(_,k)=>`<u style="--r:${((k-(n-1)/2)*8).toFixed(1)}deg"></u>`).join('')}</div>`)+`<div class="av"></div><div class="pl"><b class="nm">${esc(NM[i])}</b></div>${fanHtml(i)}${frHtml(i)}${pileHtml(i)}`}
  const nw=G.t.length>(UI.rn||0);$('mid').className='';const mh=(G.ph=='b'||G.ph=='f'||G.ph=='q'||G.ph=='v'||(G.ph=='d'&&!G.dealt)||G.fly!=null?`<div class="fl${G.fly!=null?' fly'+R(G.fly):''}">${card(G.fl)}</div>`:'')+G.t.map((x,k)=>card(x.c,'pc pc'+R(x.i)+(nw&&k==G.t.length-1?' pin':''))).join('')+(G.rev?revealHtml():'');{const mk=mh.replace(/ pin/g,'');if(UI.mk!==mk){UI.mk=mk;$('mid').innerHTML=mh}} // لا تُعاد الأوراق الملقاة إن لم تتغير (يمنع وميض الورقة البيضاء)
  UI.rn=G.t.length;
  const my=!SPEC&&G.ph=='p'&&G.turn==ME&&G.t.length<4&&!layP(),n0=G.h[ME].length,cak=my&&hk()&&!G.t.length&&G.n<7;if(!cak)UI.ak=0; /* لا إكة في آخر أكلة */ if(!my)UI.sel=-1;
@@ -101,7 +110,7 @@ function bdg(i){if(!G.mode||G.buyer!=i)return'';return G.mode=='s'?(G.ash?'أش�
  FRESH=0}
  document.querySelector('.me').className='me tm0'+(act?(G.turn==ME?' on':' dim'):'')+(G.mode&&G.buyer==ME?' buyer':'');document.querySelector('.me .nm').textContent=SPEC?'مشاهد · مقعد '+(ME+1):'أنت';
  $('dl0').style.display=G.dealer==ME&&!G.mode?'':'none';$('pl0').innerHTML=pileHtml(ME);$('stage').classList.toggle('myturn',!!my);$('rdn').style.display='none';
- $('dblb').innerHTML='';{const t0=G.ph=='p'&&G.tag[ME],dw=G.dw&&G.dw[ME];const bo=G.mode&&G.buyer==ME&&byOn();$('by0').innerHTML=(t0?esc(t0):bo?bdg(ME):'')+(dw?`<small class="dwt">${esc(dw)}</small>`:'');$('by0').style.display=t0||dw||bo?'':'none'}
+ $('dblb').innerHTML='';{const t0=tagFor(ME),dw=G.dw&&G.dw[ME];$('by0').innerHTML=(t0?fbTxt(t0):'')+(dw?`<small class="dwt">${esc(dw)}</small>`:'');$('by0').style.display=t0||dw?'':'none';$('pjf0').innerHTML=fanItems(ME)}
  $('trp').style.display='none';
  renderAct(cak);qaidSync();fitHand()
 }

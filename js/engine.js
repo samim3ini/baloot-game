@@ -266,7 +266,7 @@ function create(env){
  function next(){
   if(G.ph!='p'||G.t.length==4)return;
   G.cs=G.turn;changed();botTurn()}
- function play(i,c,ak){
+ function play(i,c,ak,bl){
   if(G.ph!='p'||G.t.length>3)return;
   const vio=violationOf(G.h[i],i,c);
   if(!G.t.length&&G.n==0)G.ld=i;
@@ -276,7 +276,7 @@ function create(env){
   if(vio){vio.i=i;vio.c=c;G.vio.push(vio)}
   if(bad)G.vio.push({type:'ace',i,c,leg:[]});
   if(G.n==0&&!G.fd[i]){G.fd[i]=1;if(humans[i]){if(!G.dc[i])setProj(i,null);else if(G.pv[i].length){G.dd[i]=1;G.tag[i]=pnames(i);say(i,G.tag[i])}}else if(G.pj[i]){G.dd[i]=1;G.tag[i]=pnames(i);say(i,G.tag[i])}} // الإعلان يظهر مع رمي أول ورقة
-  if(hk()&&c.s==G.tr&&(c.r==5||c.r==6)&&!(G.pj[i]==100&&G.pk[i]%100<10&&(G.pk[i]%10==5||G.pk[i]%10==6))&&G.pl[i].some(x=>x.s==c.s&&(x.r==5||x.r==6)&&x.r!=c.r)){G.bl[i%2]+=20;say(i,'بلوت!');splash('بلوت!',1)}
+  if(hk()&&c.s==G.tr&&(c.r==5||c.r==6)&&!(G.pj[i]==100&&G.pk[i]%100<10&&(G.pk[i]%10==5||G.pk[i]%10==6))&&G.pl[i].some(x=>x.s==c.s&&(x.r==5||x.r==6)&&x.r!=c.r)&&(!humans[i]||bl)){G.bl[i%2]+=20;say(i,'بلوت!');splash('بلوت!',1)} // اللاعب البشري عليه أن يضغط زر «بلوت» وقت رمي آخر ورقتيه (الشايب/البنت) وإلا لا يُحسب
   G.pl[i].push(c);G.t.push({i,c});
   if(G.n==1&&!G.rv[i]&&G.pv[i].length&&G.pw==i%2)autoLay(i); // لا ينزل مشروعه إلا الفريق الأقوى
   if(ann)say(i,'إكة');
@@ -595,10 +595,10 @@ function create(env){
   kawsh(seat){if(!live(seat)||!kawOK(seat))return false;kawGo(seat);return true},
   answerSun(seat,y){return live(seat)?vSun(seat,!!y):false},
   answerDouble(seat,y,cl){if(!live(seat))return false;if(G.ph=='v')return vDbl(seat,!!y,cl);if(G.ph!='d'||G.cs!=seat)return false;ansD(seat,y?1:0,cl);return true},
-  play(seat,id,ak){
+  play(seat,id,ak,bl){
    if(!live(seat)||G.ph!='p'||G.turn!=seat||G.t.length>3||needLay(seat))return false;
    const c=G.h[seat].find(x=>idc(x)==id);if(!c)return false;
-   play(seat,c,!!ak);return true},
+   play(seat,c,!!ak,!!bl);return true},
   // want: قيم المشاريع المعلنة من [20,50,100,400]. الإعلان حر (قد يكون كاذبًا)، قبل لعب أول ورقة فقط، ويظهر للجميع وسمًا كبيرًا عند مقعدك.
   // الأقوى إعلانًا يُنزل في الأكلة الثانية (lay)، وإن لم تطابق الأوراق المنزَّلة الإعلان فهو مخالفة تُكشف بالقيد.
   project(seat,want){

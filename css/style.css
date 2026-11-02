@@ -646,3 +646,50 @@ body.onl #emb{display:none}
  .me .nm,.me .dlr{font-size:11px}
  .me .dlr{width:30px;height:30px}
 }
+
+/* ===== الجولة السابعة ===== */
+/* لا شعار بيتا ولا نص السلسلة */
+#beta,#streak{display:none!important}
+
+/* إعلانات المقعد: مجموعة واحدة أمام المقعد (نحو وسط الملعب) بلا تكرار */
+.fr{position:absolute;display:flex;gap:4px;align-items:center;z-index:6;pointer-events:none}
+#p2 .fr{top:calc(100% + 3px);left:50%;translate:-50% 0;flex-direction:row}
+#p3 .fr{left:calc(100% + 4px);top:50%;translate:0 -50%;flex-direction:column;align-items:flex-start}
+#p1 .fr{right:calc(100% + 4px);left:auto;top:50%;translate:0 -50%;flex-direction:column;align-items:flex-end}
+.fb,#by0{background:linear-gradient(#fff0a6,#f2c230 55%,#d9981b);color:#2a1d05;border:1.5px solid #fffbe0;border-radius:9px;padding:0 9px 1px;font-size:14px;font-weight:900;white-space:nowrap;box-shadow:0 0 0 1px #000a,0 3px 8px #000a;line-height:1.5;text-shadow:0 1px 0 #fff8}
+.fb.dw{background:linear-gradient(#e7b86a,#b9792a);color:#fff;text-shadow:none}
+.fb .sx,#by0 .sx{font-style:normal;color:#b3140f}
+#by0 .dwt{background:#8a5a12;margin-inline-start:6px}
+.fr .dlr{position:static;left:auto;top:auto;width:30px;height:30px;box-shadow:0 2px 5px #000a}
+.fr .dlr span{font-size:8px;line-height:1}
+.fr .dlr i{width:9px;height:12px}
+
+/* مروحة المشروع المنزَّل: أوراق مائلة متقاربة تخرج من تحت المقعد نحو وسط الملعب */
+.pjf{position:absolute;width:0;height:0;z-index:-1;pointer-events:none;--pw:clamp(26px,7.4vw,44px);--ov:calc(var(--pw)*.42);--plh:46px}
+.pf{position:absolute;left:0;top:0;display:block;width:var(--pw);margin-left:calc(var(--pw)/-2);transform-origin:50% 0;transform:translateX(calc(var(--k)*var(--pw)*.3)) rotate(var(--a))}
+.pf .cd{--cw:var(--pw);transform:rotate(180deg);box-shadow:0 2px 6px #000a}
+#p2 .pjf{left:50%;top:calc(100% - var(--ov))}
+#p3 .pjf{left:calc(100% - var(--ov));bottom:calc(var(--plh)/2);rotate:-90deg}
+#p1 .pjf{right:auto;left:var(--ov);bottom:calc(var(--plh)/2);rotate:90deg}
+#pjf0{left:50%;top:calc(var(--pw)*.5);rotate:180deg;--pw:clamp(24px,6.6vw,40px)}
+#bar{position:relative}
+
+@media(max-width:820px){
+ .fb,#by0{font-size:11px;padding:0 7px}
+ .pjf{--plh:30px}
+ /* النتيجة وحدها في الأعلى: صغيرة في الوسط لا تمتد للطرفين */
+ #side{justify-content:center;background:none;border:0;box-shadow:none;padding:2px}
+ #side .st{flex:0 0 auto;width:auto;min-width:0;padding:0;margin:0}
+ #side .st .v{gap:20px;padding:1px 16px;width:auto}
+ #side .st b{font-size:18px}
+}
+
+/* مروحة أكبر وأوضح (الجزء الأكبر ظاهر) */
+:root{--pwj:clamp(32px,9.4vw,54px)}
+.pjf{--pw:var(--pwj);--ov:calc(var(--pw)*.3)}
+.pf{transform:translateX(calc(var(--k)*var(--pw)*.42)) rotate(var(--a))}
+#pjf0{--pw:var(--pwj);top:calc(var(--pw)*.4)}
+/* حين تظهر المروحة تنزاح إعلانات المقعد أمامها */
+#p2 .fr.fan{top:calc(100% + var(--pwj)*1.25)}
+#p3 .fr.fan{left:calc(100% + var(--pwj)*1.2)}
+#p1 .fr.fan{right:calc(100% + var(--pwj)*1.2)}

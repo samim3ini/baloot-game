@@ -564,6 +564,16 @@ function checkRound(E,label){
  console.log('26) لا أشكل مع الإكة + تسمية الحكم الثاني بعد قرار الخصم ✓');
 }
 
+// ---------- 27) البلوت: يضغط البشري الزر وقت رمي آخر الورقتين وإلا لا يُحسب (والبوت تلقائي في المحرك) ----------
+{
+ const mk=(hum)=>{const r=rig({seed:6});const E=r.E;if(hum)E.setHuman(0,true);E.newGame();const G=E.G,C=(s,r)=>({s,r});
+  G.ph='p';G.mode='h';G.tr=1;G.n=0;G.t=[];G.turn=0;G.fd={};G.dc=[0,0,0,0];G.bl=[0,0,0,0];G.pj=[0,0,0,0];G.pk=[0,0,0,0];G.pv=[[],[],[],[]];
+  G.pl=[[C(1,6)],[],[],[]];G.h[0]=[C(1,5),C(2,0),C(2,1),C(2,2),C(3,0),C(3,1),C(3,2)];return {E,G}}; // لعب الشايب سابقًا، والبنت الآن
+ let {E,G}=mk(true);assert.strictEqual(E.play(0,1*8+5,false,false),true);assert.strictEqual(G.bl[0],0,'بلا ضغط الزر لا يُحسب');
+ ({E,G}=mk(true));assert.strictEqual(E.play(0,1*8+5,false,true),true);assert.strictEqual(G.bl[0],20,'مع ضغط الزر يُحسب');
+ console.log('27) زر البلوت ✓');
+}
+
 // ---------- 17) بلاغ المستخدم: الشريك قاد ورقة ليست آسًا بلا إكة فعلى القاطع الدق ولو كان شريكه رابحًا حاليًا ----------
 {
  const r=rig({seed:3});const E=r.E;E.newGame();const G=E.G,C=(s,r)=>({s,r});
