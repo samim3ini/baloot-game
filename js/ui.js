@@ -81,7 +81,7 @@ function frHtml(i){
 // مروحة المشروع المنزَّل: أوراق مائلة متقاربة كاليد، تخرج من تحت مقعد صاحبها نحو وسط الملعب
 function fanItems(i){
  const o=UI.pj&&UI.pj[i];if(!o||Date.now()>o.until)return '';
- const n=o.cards.length,c=(n-1)/2,step=Math.min(9,66/Math.max(1,n-1));
+ const n=o.cards.length,c=(n-1)/2,step=Math.min(12,80/Math.max(1,n-1));
  return o.cards.map((cd,k)=>`<i class="pf" style="--a:${((k-c)*step).toFixed(1)}deg;--k:${(k-c).toFixed(2)}">${card(cd)}</i>`).join('')}
 const fanHtml=i=>{const f=fanItems(i);return f&&R(i)?`<div class="pjf">${f}</div>`:''};
 const HAND_SUITS=[1,2,3,0]; // هاص ♥ ثم شريا ♣ ثم ديمن ♦ ثم سبيت ♠
@@ -112,7 +112,7 @@ function render(){
  $('dl0').style.display=G.dealer==ME&&!G.mode?'':'none';$('pl0').innerHTML=pileHtml(ME);$('stage').classList.toggle('myturn',!!my);$('rdn').style.display='none';
  $('dblb').innerHTML='';{const t0=tagFor(ME),dw=G.dw&&G.dw[ME];$('by0').innerHTML=(t0?fbTxt(t0):'')+(dw?`<small class="dwt">${esc(dw)}</small>`:'');$('by0').style.display=t0||dw?'':'none';$('pjf0').innerHTML=fanItems(ME)}
  $('trp').style.display='none';
- renderAct(cak);qaidSync();fitHand()
+ renderAct(cak);qaidSync();fitHand();placeMyFan()
 }
 
 // ضبط اليد تلقائيًا: أكبر ما يمكن، أقرب ما يمكن إلى أوراق المنتصف دون أن تلمسها، ومفرّقة بقدر ما يسمح العرض.
@@ -146,8 +146,16 @@ function fitHand(){
  h.style.setProperty('--mo',-o.ov);h.style.setProperty('--hs',s.toFixed(3));
  h.style.setProperty('--hy',(bot-(oy+(o.b-oy)*s)).toFixed(1)+'px');
  UI.fs=sig}
-addEventListener('resize',fitHand);
-if(window.ResizeObserver){const ro=new ResizeObserver(()=>fitHand());ro.observe(document.getElementById('stage'));ro.observe(document.getElementById('tbl'))}
+// مروحة مشروعك: أمامك فوق أوراق يدك مباشرةً (لا فوقها)، مجتمعة عند يدك ومتفرقة نحو وسط الطاولة
+function placeMyFan(){
+ const f=document.getElementById('pjf0'),t=document.getElementById('tbl'),h=document.getElementById('hand');
+ if(!f||!t||!h||!f.firstChild)return;
+ let top=1e9;h.querySelectorAll('.cd:not(.sel):not(.dm)').forEach(c=>{top=Math.min(top,c.getBoundingClientRect().top)});
+ if(top>1e8)return;
+ const tr=t.getBoundingClientRect(),hr=h.getBoundingClientRect();
+ f.style.left=(hr.left+hr.width/2-tr.left)+'px';f.style.top=(top-tr.top-6)+'px'}
+addEventListener('resize',()=>{fitHand();placeMyFan()});
+if(window.ResizeObserver){const ro=new ResizeObserver(()=>{fitHand();placeMyFan()});ro.observe(document.getElementById('stage'));ro.observe(document.getElementById('tbl'))}
 
 const EMO=['👍','👏','😂','😎','😡','😭','🔥','🤝'];
 function emoTray(){const e=$('emt');if(e.style.display=='flex'){e.style.display='none';return}e.innerHTML=EMO.map(x=>`<button onclick="emote(0,'${x}');$('emt').style.display='none'">${x}</button>`).join('');e.style.display='flex'}
@@ -185,11 +193,8 @@ function qPick(id,o,hand){
  let pc=q.pc,rq=q.rq;
  if(id==pc){pc=-1;rq=-1}
  else if(id==rq)rq=-1;
- else if(hand)rq=id; // أوراق الأيدي لا تكون إلا «الورقة التي كان يجب لعبها»
- else if(pc<0)pc=id;
- else if(o!=qOwn(pc)){pc=id;rq=-1}
- else if(qNeedR(q.t))rq=id;
- else pc=id;
+ else if(pc>=0&&qNeedR(q.t))rq=id; // «الورقة المفروضة»: أي ورقة من أي لاعب (أكلات أو أيدي، ولو من يدك أو شريكك)؛ والمقيِّد مسؤول عن اختياره
+ else if(!hand){pc=id;rq=-1} // قبل اختيار نوع يحتاج ورقة مفروضة: النقرة تغيّر ورقة الغش
  ENG.qaidSet(ME,{pc,rq})}
 function qType(t){
  const q=G.qa;if(!qMine(q))return;

@@ -693,3 +693,21 @@ body.onl #emb{display:none}
 #p2 .fr.fan{top:calc(100% + var(--pwj)*1.25)}
 #p3 .fr.fan{left:calc(100% + var(--pwj)*1.2)}
 #p1 .fr.fan{right:calc(100% + var(--pwj)*1.2)}
+
+
+/* ===== الجولة الثامنة ===== */
+/* مراوح المشاريع معكوسة: مجتمعة عند اللاعب ومتفرقة نحو وسط الملعب */
+.pf{transform:translateX(calc(var(--k)*var(--pw)*.16)) rotate(calc(var(--a)*-1))}
+/* مروحتك: أمامك فوق يدك على الطاولة (يضبط ui.js موضعها)، تحت أوراق المنتصف وفوق السجادة */
+#pjf0{z-index:1;left:50%;top:60%;rotate:180deg;--pw:var(--pwj);--ov:0px}
+/* النتيجة في الجوال: داخل إطار اللعبة (زاويته العليا) وأرقامها في منتصف الكبسولة */
+@media(max-width:820px){
+ #wrap{position:relative}
+ #side{position:absolute;top:0;left:0;right:0;width:auto;height:0;padding:0;gap:0;border:0;background:none;box-shadow:none;overflow:visible;z-index:7;pointer-events:none}
+ #side .st{position:absolute;left:12px;top:12px;width:auto;min-width:0;height:30px;margin:0;padding:0;display:flex;align-items:center;justify-content:center;background:rgba(27,30,36,.92);border:1px solid var(--line);border-radius:15px;pointer-events:auto}
+ #side .st .v{display:flex;align-items:center;justify-content:center;gap:16px;width:auto;height:100%;padding:0 14px;margin:0}
+ #side .st b{display:inline-flex;align-items:center;gap:4px;line-height:1;font-size:18px;margin:0;padding:0}
+ #side .st #streak,#side .st .live{display:none!important}
+ #side .tb{position:absolute;right:12px;top:12px;width:auto;display:flex;gap:6px;pointer-events:auto}
+ #side #chat{pointer-events:auto}
+}

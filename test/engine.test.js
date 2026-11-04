@@ -451,6 +451,10 @@ function checkRound(E,label){
  // في الحكم: كبوت 25 بدل 16
  ({E,G}=mk(dead(),[0,3],3,1));G.mode='h';G.tr=2;
  E._t.qaidEnd(0,{k:'qaid',valid:1});assert.deepStrictEqual(G.res.p,[0,25],'كبوت الحكم 25 بدل قيد 16');
+ // قيد السوا الخاطئ لا يُحسب كبوتًا أبدًا ولو كان فريق المعلِن سيأكل الباقي بمساعدة شريكه
+ ({E,G}=mk(dead(),[0,3],3,1));G.mode='h';G.tr=2;
+ assert.strictEqual(E._t.kabootForced(1),true);
+ E._t.qaidEnd(0,{k:'qaid',type:'sawa',valid:1});assert.deepStrictEqual(G.res.p,[16,0],'قيد سوا صحيح لا كبوت');assert.strictEqual(G.res.info.k,'qaid');
  console.log('24) القيد لا يُنقذ من الكبوت ✓');
 }
 
