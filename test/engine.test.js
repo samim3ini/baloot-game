@@ -427,34 +427,33 @@ function checkRound(E,label){
  console.log('23) لا إكة في آخر أكلة ✓');
 }
 
-// ---------- 24) القيد لا يُنقذ فريقًا كان سيُكبَّت ----------
+// ---------- 24) القيد في الكبوت: الصحيح قيد عادي دائمًا، والخاطئ يُفحص فيه الكبوت ----------
 {
  const mk=(hands,tk,n,turn)=>{const r=rig({seed:5});const E=r.E;E.setHuman(0,true);E.newGame();const G=E.G;
   G.ph='p';G.mode='s';G.tr=-1;G.m=1;G.t=[];G.n=n;G.tk=tk.slice();G.turn=turn;G.h=hands;G.pl=[[],[],[],[]];G.vio=[];G.pv=[[],[],[],[]];G.pk=[0,0,0,0];G.pj=[0,0,0,0];G.bl=[0,0,0,0];G.cl=0;G.ann=0;return {E,G}};
  const C=(s,r)=>({s,r});
- // الفريق 1 (المقعدان 1 و3) معه كل الأعلى، والفريق 0 لم يأكل شيئًا ولا يستطيع أن يأكل
+ // الفريق 1 (المقعدان 1 و3) معه كل الأعلى والفريق 0 لم يأكل شيئًا ولا يستطيع أن يأكل
  const dead=()=>[[C(0,0),C(1,0),C(2,0),C(3,0),C(0,1)],[C(0,7),C(1,7),C(2,7),C(3,7),C(0,3)],[C(1,1),C(2,1),C(3,1),C(0,2),C(1,2)],[C(0,6),C(1,6),C(2,6),C(3,6),C(1,3)]];
  let {E,G}=mk(dead(),[0,3],3,1);
- assert.strictEqual(E._t.kabootForced(1),true,'كان سيُكبَّت');
+ assert.strictEqual(E._t.kabootForced(1),true);
+ // قيد صحيح من الفريق 0 على الفريق 1 (الذي كان سيكبّت): قيد عادي 26 لا كبوت
  E._t.qaidEnd(0,{k:'qaid',valid:1});
- assert.strictEqual(G.res.info.k,'kaboot');assert.deepStrictEqual(G.res.p,[0,44],'كبوت الصن 44 بدل قيد 26');
- // الفريق 0 معه آس واحد يأكل به أكلة: ليس كبوتًا فيصح القيد
+ assert.strictEqual(G.res.info.k,'qaid');assert.deepStrictEqual(G.res.p,[26,0],'القيد الصحيح لا كبوت فيه');
+ // قيد خاطئ من الفريق 0 فينقلب للفريق 1 وكان سيأكل الباقي: كبوت 44
+ ({E,G}=mk(dead(),[0,3],3,1));E._t.qaidEnd(1,{k:'qaid',valid:0});
+ assert.strictEqual(G.res.info.k,'kaboot');assert.deepStrictEqual(G.res.p,[0,44],'قيد خاطئ والباقي كله لهم: كبوت');
+ // قيد خاطئ والفريق 0 يستطيع أكل أكلة: قيد خاطئ عادي 26 للفريق 1
  const live=dead();live[0][0]=C(0,7);live[1][0]=C(0,5);
- ({E,G}=mk(live,[0,3],3,1));
- assert.strictEqual(E._t.kabootForced(1),false,'يستطيع أكل أكلة');
- E._t.qaidEnd(0,{k:'qaid',valid:1});assert.deepStrictEqual(G.res.p,[26,0],'قيد عادي 26');
- // أكل الفريق المقيِّد أكلة سابقة: ليس كبوتًا
- ({E,G}=mk(dead(),[1,2],3,1));assert.strictEqual(E._t.kabootForced(1),false);
- // بعد آخر أكلة (انتظار النتيجة) والفريق 1 أخذ الثمان: كبوت
- ({E,G}=mk([[],[],[],[]],[0,8],8,1));G.ph='x';
- assert.strictEqual(E._t.kabootForced(1),true);
- // في الحكم: كبوت 25 بدل 16
- ({E,G}=mk(dead(),[0,3],3,1));G.mode='h';G.tr=2;
- E._t.qaidEnd(0,{k:'qaid',valid:1});assert.deepStrictEqual(G.res.p,[0,25],'كبوت الحكم 25 بدل قيد 16');
- // قيد السوا الخاطئ لا يُحسب كبوتًا أبدًا ولو كان فريق المعلِن سيأكل الباقي بمساعدة شريكه
- ({E,G}=mk(dead(),[0,3],3,1));G.mode='h';G.tr=2;
- assert.strictEqual(E._t.kabootForced(1),true);
- E._t.qaidEnd(0,{k:'qaid',type:'sawa',valid:1});assert.deepStrictEqual(G.res.p,[16,0],'قيد سوا صحيح لا كبوت');assert.strictEqual(G.res.info.k,'qaid');
+ ({E,G}=mk(live,[0,3],3,1));E._t.qaidEnd(1,{k:'qaid',valid:0});
+ assert.strictEqual(G.res.info.k,'qaid');assert.deepStrictEqual(G.res.p,[0,26]);
+ // أكل الفريق 0 أكلة سابقة: لا كبوت
+ ({E,G}=mk(dead(),[1,2],3,1));E._t.qaidEnd(1,{k:'qaid',valid:0});assert.deepStrictEqual(G.res.p,[0,26]);
+ // في الحكم: كبوت 25 وقيد 16
+ ({E,G}=mk(dead(),[0,3],3,1));G.mode='h';G.tr=2;E._t.qaidEnd(1,{k:'qaid',valid:0});assert.deepStrictEqual(G.res.p,[0,25]);
+ ({E,G}=mk(dead(),[0,3],3,1));G.mode='h';G.tr=2;E._t.qaidEnd(0,{k:'qaid',valid:1});assert.deepStrictEqual(G.res.p,[16,0]);
+ // السوا الخاطئ: قيد صحيح عادي (16) ولو كان فريق المعلِن سيأكل الباقي بمساعدة شريكه
+ ({E,G}=mk(dead(),[0,3],3,1));G.mode='h';G.tr=2;E._t.qaidEnd(0,{k:'qaid',type:'sawa',valid:1});
+ assert.deepStrictEqual(G.res.p,[16,0]);assert.strictEqual(G.res.info.k,'qaid');
  console.log('24) القيد لا يُنقذ من الكبوت ✓');
 }
 

@@ -81,8 +81,9 @@ function frHtml(i){
 // مروحة المشروع المنزَّل: أوراق مائلة متقاربة كاليد، تخرج من تحت مقعد صاحبها نحو وسط الملعب
 function fanItems(i){
  const o=UI.pj&&UI.pj[i];if(!o||Date.now()>o.until)return '';
- const n=o.cards.length,c=(n-1)/2,step=Math.min(12,80/Math.max(1,n-1));
- return o.cards.map((cd,k)=>`<i class="pf" style="--a:${((k-c)*step).toFixed(1)}deg;--k:${(k-c).toFixed(2)}">${card(cd)}</i>`).join('')}
+ const n=o.cards.length,c=(n-1)/2,step=Math.min(6,36/Math.max(1,n-1));
+ const sp=n<=4?.6:n<=6?.5:.42; // تباعد أقل عند كثرة الأوراق كي لا تطول المروحة
+ return o.cards.map((cd,k)=>`<i class="pf" style="--a:${((k-c)*step).toFixed(1)}deg;--k:${((k-c)*sp/.6).toFixed(2)}">${card(cd)}</i>`).join('')}
 const fanHtml=i=>{const f=fanItems(i);return f&&R(i)?`<div class="pjf">${f}</div>`:''};
 const HAND_SUITS=[1,2,3,0]; // هاص ♥ ثم شريا ♣ ثم ديمن ♦ ثم سبيت ♠
 const HAND_RTL=true; // true: يُقرأ الترتيب من اليمين إلى اليسار (غيّرها إلى false ليبدأ من اليسار)
@@ -208,12 +209,12 @@ function qaidDlg(){
  const pair=V?`<div class="qpair">${q.pc>=0?`<div class="qps">${qSlot(qCard(q.pc),'bad')}<small>الورقة التي غُشّ بها</small></div>`:''}${nr&&q.rq>=0?`<div class="qps">${qSlot(qCard(q.rq),'ok')}<small>كان يجب لعبها</small></div>`:''}${q.t=='proj'?'<p class="qnote">قيد على مشروع كاذب</p>':''}${q.t=='sawa'?`<p class="qnote">${q.p==ME?'أعلنتَ سوا وبقيت أكلات لا تكسبها':esc(NM[q.p])+' أعلن سوا وبقيت أكلات لا يكسبها'}</p>`:''}</div>`:'';
  const wn=t=>t.reduce((a,b)=>val(b.c,t[0].c.s)>val(a.c,t[0].c.s)?b:a).i,tr=[...G.tl,...(G.t.length?[G.t]:[])];
  const trh=tr.length?tr.map((t,k)=>{const w=t.length==4?wn(t):-1;
-  return `<div class="qt"><h3>الأكلة ${k+1}</h3><div class="qtb">${t.map(x=>{const id=qId(x.c);return qSlot(x.c,qSt(id,x.i,0),qCan(id,x.i,0)?`qPick(${id},${x.i},0)`:'',x.i==w?'★':'')}).join('')}</div></div>`}).join(''):'<p class="qemp">لم تُلعب أي أكلة بعد</p>';
+  return `<div class="qt"><h3>الأكلة ${k+1}</h3><div class="qtb">${t.map(x=>{const id=qId(x.c);return qSlot(x.c,qSt(id,x.i,0),qCan(id,x.i,0)?`qPick(${id},${x.i},0)`:'','')}).join('')}</div></div>`}).join(''):'<p class="qemp">لم تُلعب أي أكلة بعد</p>';
  const team=[0,1,2,3].map(r=>(ME+r)%4).filter(j=>G.h[j].length&&G.h[j][0]); // أيدي الجميع (الخصم والشريك) ما دام الخادم كشفها لك
  const hh=team.length?`<div class="qhands">${team.map(j=>`<div class="qhb"><div class="qhh"><span>${esc(NM[j])}</span>${qDots(j)}</div><div class="qhg">${G.h[j].length?G.h[j].map(c=>{const id=qId(c);return qSlot(c,qSt(id,j,1),qCan(id,j,1)?`qPick(${id},${j},1)`:'')}).join(''):'<p class="qemp">لا أوراق</p>'}</div></div>`).join('')}</div>`:'';
  const ft=mine?`<div class="qf"><div class="qwho">المقيد: <b>${esc(NM[q.by])}</b></div><button class="${ready?'go':''}" ${ready?'':'disabled'} onclick="qConfirm()">قيدها</button></div>`
   :`<div class="qf"><div class="qwho">المقيد: <b>${esc(NM[q.by])}</b></div>${q.auto?'<button class="go" onclick="qCont()">متابعة</button>':'<div class="qwho">أنت مشاهد</div>'}</div>`;
- $('qvb').innerHTML=head+`<div class="qbody">${pair}<p class="qhint">${V?'':'اضغط الورقة المحددة مرة ثانية لإلغائها · '}★ أخذ الأكلة</p>${trh}${hh}</div>`+ft;
+ $('qvb').innerHTML=head+`<div class="qbody">${pair}<p class="qhint">${V?'':'اضغط الورقة المحددة مرة ثانية لإلغائها'}</p>${trh}${hh}</div>`+ft;
  $('qv').style.display='flex';document.querySelector('#qvb .qbody').scrollTop=sc}
 function qaidSync(){
  if(G.qa)qaidDlg();

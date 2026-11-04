@@ -392,8 +392,9 @@ function create(env){
   if(G.ph!='p'&&G.ph!='x')return;
   const m=G.m,p=[0,0],pa=[0,0],bl=[G.bl[0]/10,G.bl[1]/10];
   for(let i=0;i<4;i++)pa[i%2]+=pjP(i);
-  // القيد الصحيح لا يُنقذ فريقًا كان سيُكبَّت: إن كان الخصم سيأكل كل الأكلات لو لم يقيّد، فالنتيجة كبوت عليه. (قيد السوا الخاطئ مستثنى: يُحسب قيدًا عاديًّا دائمًا)
-  if(info&&info.valid&&info.type!='sawa'&&kabootForced(1-t)){const w=1-t;p[w]=(hk()||m>1?25:44)+pa[w]+bl[w];splash('كبوت!',4);return fin(p,{k:'kaboot',w,qaid:1},w)}
+  // القيد الصحيح يُحسب قيدًا عاديًّا دائمًا (26 صن / 16 حكم للمقيِّد، والفريق الآخر صفر) ولا كبوت فيه أبدًا.
+  // أما القيد الخاطئ (المنقلب على صاحبه): فإن كان الفريق t سيأكل كل الباقي (لم يأكل خصمه شيئًا ولن يأكل) فكبوت له، وإلا قيد عادي له.
+  if(info&&!info.valid&&kabootForced(t)){p[t]=(hk()||m>1?25:44)+pa[t]+bl[t];splash('كبوت!',4);return fin(p,{k:'kaboot',w:t,qaid:1},t)}
   p[t]=(hk()?16:26)*m+(m==2?2:1)*pa[t]+bl[t];
   splash('قيد!',3);fin(p,info,t)}
  function qaidAuto(o,cb){

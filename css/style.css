@@ -711,3 +711,17 @@ body.onl #emb{display:none}
  #side .tb{position:absolute;right:12px;top:12px;width:auto;display:flex;gap:6px;pointer-events:auto}
  #side #chat{pointer-events:auto}
 }
+
+/* ===== الجولة التاسعة: مراوح أكبر وأوضح وأبعد عن المقعد، وأوراق منتصف أصغر ومتداخلة قليلًا ===== */
+:root{--pwj:clamp(40px,11.5vw,64px)}
+.pjf{--ov:calc(var(--pw)*-.12)}
+.pf{transform:translateX(calc(var(--k)*var(--pw)*.6)) rotate(calc(var(--a)*-1))}
+#p2 .fr.fan{top:calc(100% + var(--pwj)*1.7)}
+#p3 .fr.fan{left:calc(100% + var(--pwj)*1.7)}
+#p1 .fr.fan{right:calc(100% + var(--pwj)*1.7)}
+.pc{--cw:min(12.5vw,66px)}
+@media(max-width:820px){.pc{--cw:min(11.5vw,50px)}}
+.pc0{transform:translate(-50%,-50%) translateY(calc(var(--cw)*.6)) rotate(-3deg)}
+.pc2{transform:translate(-50%,-50%) translateY(calc(var(--cw)*-.6)) rotate(2deg)}
+.pc1{transform:translate(-50%,-50%) translateX(calc(var(--cw)*.9)) rotate(86deg)}
+.pc3{transform:translate(-50%,-50%) translateX(calc(var(--cw)*-.9)) rotate(-88deg)}
