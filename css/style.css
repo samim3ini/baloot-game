@@ -725,3 +725,8 @@ body.onl #emb{display:none}
 .pc2{transform:translate(-50%,-50%) translateY(calc(var(--cw)*-.6)) rotate(2deg)}
 .pc1{transform:translate(-50%,-50%) translateX(calc(var(--cw)*.9)) rotate(86deg)}
 .pc3{transform:translate(-50%,-50%) translateX(calc(var(--cw)*-.9)) rotate(-88deg)}
+
+/* ===== الجولة العاشرة ===== */
+/* تعتيم اللاعب غير صاحب الدور لا يشمل مراوح المشاريع: تبقى بلونها الكامل */
+.seat.dim{opacity:1;filter:none}
+.seat.dim>*:not(.pjf){opacity:.72;filter:saturate(.65)}

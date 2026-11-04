@@ -83,7 +83,8 @@ function fanItems(i){
  const o=UI.pj&&UI.pj[i];if(!o||Date.now()>o.until)return '';
  const n=o.cards.length,c=(n-1)/2,step=Math.min(6,36/Math.max(1,n-1));
  const sp=n<=4?.6:n<=6?.5:.42; // تباعد أقل عند كثرة الأوراق كي لا تطول المروحة
- return o.cards.map((cd,k)=>`<i class="pf" style="--a:${((k-c)*step).toFixed(1)}deg;--k:${((k-c)*sp/.6).toFixed(2)}">${card(cd)}</i>`).join('')}
+ // من منظور صاحب الأوراق تتوالى من اليسار لليمين بترتيبها، وكل ورقة تعلو التي على يسارها، فيظهر الركن العلوي الأيسر (الرقم والشكل) لكل ورقة
+ return o.cards.map((cd,k)=>`<i class="pf" style="--a:${((c-k)*step).toFixed(1)}deg;--k:${((c-k)*sp/.6).toFixed(2)}">${card(cd)}</i>`).join('')}
 const fanHtml=i=>{const f=fanItems(i);return f&&R(i)?`<div class="pjf">${f}</div>`:''};
 const HAND_SUITS=[1,2,3,0]; // هاص ♥ ثم شريا ♣ ثم ديمن ♦ ثم سبيت ♠
 const HAND_RTL=true; // true: يُقرأ الترتيب من اليمين إلى اليسار (غيّرها إلى false ليبدأ من اليسار)
