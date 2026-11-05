@@ -6,7 +6,7 @@
 <meta name="description" content="لعبة بلوت في المتصفح">
 <title>بلوت</title>
 <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css">
+<style id="boot">html{visibility:hidden}</style>
 </head>
 <body>
 <div id="wrap">
@@ -21,7 +21,7 @@
 <main id="stage"><div id="tbl">
 <div class="seat" id="p2"></div><div class="seat" id="p3"></div><div class="seat" id="p1"></div>
 <div id="trp"></div><div id="rdn"></div><div id="dblb"></div><div id="rug"></div><div class="pjf" id="pjf0"></div><div id="mid"></div><div id="wait"><span id="wt"></span></div><div id="msg"></div></div><div id="hand"></div>
-<div id="bar"><div class="me"><span class="dlr" id="dl0"><i></i><span>موزع</span></span><span class="avw"><button id="kawb" onclick="ENG.kawsh(ME)">كوشة</button><div class="av"></div></span><span class="nm">أنت</span><span class="by" id="by0"></span><span id="pl0"></span><button id="emb" onclick="emoTray()">😀</button></div><div id="act"></div></div>
+<div id="bar"><div class="me"><span class="dlr" id="dl0"><i></i><span>موزع</span></span><span class="avw"><button id="kawb" onclick="ENG.kawsh(ME)">كوشة</button><div class="av"></div><span class="nm">أنت</span></span><span class="by" id="by0"></span><span id="pl0"></span><button id="emb" onclick="emoTray()">😀</button></div><div id="act"></div></div>
 <div id="emt"></div><div id="pmenu"></div></main>
 </div>
 <div id="ov" onclick="ovClick(event)"><div id="ovb"></div></div>
@@ -35,12 +35,24 @@
  <div class="lrow"><input id="lcode" maxlength="5" placeholder="كود الغرفة" onkeydown="if(event.key=='Enter')lobbyJoin()"><button onclick="lobbyJoin()">دخول</button></div>
  <div id="lmsg"></div></div></div>
 <noscript>يحتاج اللعب إلى تفعيل جافا سكريبت.</noscript>
-<!-- الترتيب مهم: كل ملف يعتمد على ما قبله -->
-<script src="js/engine.js"></script>
-<script src="js/config.js"></script>
-<script src="js/ui.js"></script>
-<script src="js/game.js"></script>
-<script src="js/net.js"></script>
-<script src="js/main.js"></script>
+<!-- محمّل الملفات: يجلب كل ملف بعد التحقق من الخادم (لا يستعمل نسخة قديمة محفوظة في المتصفح)، فيرى اللاعبون كل تحديث فور تحميل الصفحة دون حذف بيانات الموقع.
+     إن تعذّر ذلك (مثلًا عند فتح الصفحة من الملفات مباشرة) رجع للتحميل العادي. الترتيب مهم: كل ملف يعتمد على ما قبله. -->
+<script>
+(function(){
+ var CSS=['css/style.css'],JS=['js/engine.js','js/config.js','js/ui.js','js/game.js','js/net.js','js/main.js'];
+ function show(){var b=document.getElementById('boot');if(b)b.remove()}
+ setTimeout(show,5000);
+ function plain(){
+  CSS.forEach(function(f){var l=document.createElement('link');l.rel='stylesheet';l.href=f;document.head.appendChild(l)});
+  (function nx(i){if(i>=JS.length){show();return}var s=document.createElement('script');s.src=JS[i];s.onload=function(){nx(i+1)};s.onerror=function(){nx(i+1)};document.body.appendChild(s)})(0)}
+ function get(f){return fetch(f,{cache:'no-cache'}).then(function(r){if(!r.ok)throw new Error(f);return r.text()})}
+ if(!window.fetch||location.protocol==='file:')return plain();
+ Promise.all(CSS.concat(JS).map(get)).then(function(t){
+  t.slice(0,CSS.length).forEach(function(x,i){var st=document.createElement('style');st.textContent=x+'\n/*# sourceURL='+CSS[i]+' */';document.head.appendChild(st)});
+  t.slice(CSS.length).forEach(function(x,i){var s=document.createElement('script');s.text=x+'\n//# sourceURL='+JS[i];document.body.appendChild(s)});
+  show()
+ }).catch(plain)
+})();
+</script>
 </body>
 </html>

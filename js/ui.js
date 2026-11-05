@@ -12,7 +12,7 @@ const RUGSVG=`<svg viewBox="0 0 400 240" preserveAspectRatio="none"><defs><patte
 function applySkin(){
  document.documentElement.style.setProperty('--back',SKIN.back?`url('${SKIN.back}')`:'none');
  $('rug').innerHTML=SKIN.rug?`<img src="${SKIN.rug}" alt="">`:RUGSVG;
- $('stage').style.backgroundImage=SKIN.table?`url('${SKIN.table}')`:'';
+ $('stage').style.backgroundImage=SKIN.table?`url('${SKIN.table}')`:'';$('rug').classList.toggle('custom',!!SKIN.rug);
  if(G)render()}
 const idb=(m,v)=>new Promise(res=>{try{const q=indexedDB.open('baloot-skin',1);q.onupgradeneeded=()=>q.result.createObjectStore('f');q.onsuccess=()=>{const st=q.result.transaction('f',m=='get'?'readonly':'readwrite').objectStore('f'),r=m=='get'?st.get('skin'):m=='set'?st.put(v,'skin'):st.delete('skin');r.onsuccess=()=>res(r.result);r.onerror=()=>res()};q.onerror=()=>res()}catch(e){res()}});
 function skinDone(){if(SKW){SKW=false;UI.hk=null;applySkin()}}
@@ -58,7 +58,7 @@ function showProj(ev){
  render();setTimeout(()=>{if(G)render()},5100)}
 
 // كومة الأكلات الرابحة لمقعد i: أوراق أفقية متراكمة (حتى 8 طبقات) وعدد الأكلات فوقها
-function pileHtml(i){const n=G.pile[i];if(!n)return'';const L=Math.min(n,3);return `<div class="pile" style="--n:3">${Array.from({length:L},(_,k)=>`<u style="--k:${k}"></u>`).join('')}<b>${n}</b></div>`}
+function pileHtml(i){const n=G.pile[i];if(!n||fanItems(i))return'';const L=Math.min(n,3);return `<div class="pile" style="--n:3">${Array.from({length:L},(_,k)=>`<u style="--k:${k}"></u>`).join('')}</div>`} // بلا رقم، وتختفي ثواني حين تُنزَل مشاريع صاحبها كي لا تتداخل مع مروحته
 const esc=t=>String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const DLR='<div class="dlr" title="الموزع"><i></i><span>موزع</span></div>';
 const BUYER_TAG_MS=10000; // يختفي وسم صن/حكم عند مقعد المشتري بعد هذه المدة من توزيع بقية الأوراق (0 = لا يظهر أصلًا)

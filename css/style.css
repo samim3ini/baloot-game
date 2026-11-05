@@ -730,3 +730,21 @@ body.onl #emb{display:none}
 /* تعتيم اللاعب غير صاحب الدور لا يشمل مراوح المشاريع: تبقى بلونها الكامل */
 .seat.dim{opacity:1;filter:none}
 .seat.dim>*:not(.pjf){opacity:.72;filter:saturate(.65)}
+
+/* ===== الجولة الحادية عشرة ===== */
+/* بطاقة اللاعب: بلا إطار ولا مستطيل؛ الاسم شريط صغير تحت الصورة بلون الفريق (ذهبي للمشتري) */
+.pl,.tm0 .pl,.tm1 .pl{background:none;border:0;box-shadow:none;border-radius:0;padding:0;margin:4px 0 0;color:#fff}
+.seat.buyer .pl,.seat.buyer.tm0 .pl,.seat.buyer.tm1 .pl{box-shadow:none}
+.pl .nm,.me .nm{display:inline-block;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;background:rgba(12,14,18,.8);color:#fff;font-size:11px;font-weight:700;line-height:1.55;padding:0 9px;border-radius:3px;border-bottom:2px solid #8a93a0;box-shadow:none}
+.tm0 .pl .nm,.me .nm{border-bottom-color:#5aa0ff}
+.tm1 .pl .nm{border-bottom-color:#ff7a5a}
+.seat.buyer .pl .nm,.me.buyer .nm{border-bottom-color:var(--gold);box-shadow:0 2px 8px #d9ae4a88}
+.avw{display:inline-flex;flex-direction:column;align-items:center;gap:3px}
+@media(max-width:820px){.pl .nm,.me .nm{font-size:10px;padding:0 6px}}
+/* كومة الأكلات: بلا رقم، وعند الخوي أمامه بالوسط (تنزل قليلًا إن كان أمامه وسم) */
+.pile b{display:none}
+#p2 .pile{top:calc(100% + 6px);left:50%;translate:-50% 0}
+#p2 .fr~.pile{top:calc(100% + 32px)}
+/* السجادة المخصصة (cards/rug.png): تملأ الساحة دون تشويه، بألوانها الأصلية */
+#rug img{object-fit:cover}
+#rug.custom{filter:none}

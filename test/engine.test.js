@@ -618,4 +618,14 @@ function checkRound(E,label){
  assert.deepStrictEqual(E.legal(h,0).map(c=>c.r),[3],'حكم أرضي: يلزم الطلوع');
  console.log('18) الدق فوق دقّ الخصم ✓');
 }
+// ---------- 28) كلمة الدبل الأحدث وحدها تبقى (ثري المشتري تُلغي «دبل مقفل» عند الخصم) ----------
+{
+ const r=rig({seed:9});const E=r.E;E.setHuman(0,true);E.setHuman(1,true);E.newGame();const G=E.G;
+ G.mode='h';G.tr=1;G.buyer=0;G.ph='d';G.dst=0;G.dw=['','','',''];G.q=[1];G.cs=1;
+ E.answerDouble(1,true,1);
+ assert.strictEqual(G.dw[1],'دبل مقفل');
+ E.answerDouble(0,true,0);
+ assert.strictEqual(G.dw[0],'ثري');assert.strictEqual(G.dw[1],'','دبل مقفل يُحذف عند الخصم بعد الثري');
+ console.log('28) كلمة الدبل الأحدث وحدها تبقى ✓');
+}
 console.log('\nكل اختبارات المحرك نجحت');

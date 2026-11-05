@@ -258,7 +258,7 @@ function create(env){
  function doDouble(s,cl){
   const st=G.dst,two=hk()&&(st==0||st==2);G.dt=s%2;if(st==0)G.dp=s;if(st==3)G.coffee=1;G.m=Math.min(st+2,4);
   if(two)G.cl=cl===undefined?(rnd()<.3?1:0):(cl?1:0);else if(st==1||st==3)G.cl=0;
-  {const sb=two?(G.cl?'مقفل':'مفتوح'):'',w=DN[st]+(sb?' '+sb:'');G.dw[s]=w;say(s,w);splash(DN[st]+'!',st+2,sb)} // نص صغير عند مقعد المدبِّل فقط
+  {const sb=two?(G.cl?'مقفل':'مفتوح'):'',w=DN[st]+(sb?' '+sb:'');for(let k=0;k<4;k++)G.dw[k]='';G.dw[s]=w;say(s,w);splash(DN[st]+'!',st+2,sb)} // نص صغير عند مقعد المدبِّل فقط
   }
  function startPlay(){G.ph='p';G.tag=['','','',''];G.turn=(G.dealer+1)%4;G.cs=-1;changed();after(next,1500)}
 
